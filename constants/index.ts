@@ -29,6 +29,7 @@ export const recentSessions = [
     topic: "Neural Network of the Brain",
     duration: 45,
     color: "#E5D0FF",
+    bookmarked: false,
   },
   {
     id: "2",
@@ -37,6 +38,7 @@ export const recentSessions = [
     topic: "Derivatives & Integrals",
     duration: 30,
     color: "#FFDA6E",
+    bookmarked: false,
   },
   {
     id: "3",
@@ -45,6 +47,7 @@ export const recentSessions = [
     topic: "English Literature",
     duration: 30,
     color: "#BDE7FF",
+    bookmarked: false,
   },
   {
     id: "4",
@@ -53,6 +56,7 @@ export const recentSessions = [
     topic: "Intro to If-Else Statements",
     duration: 45,
     color: "#FFC8E4",
+    bookmarked: false,
   },
   {
     id: "5",
@@ -61,6 +65,7 @@ export const recentSessions = [
     topic: "World Wars: Causes & Consequences",
     duration: 15,
     color: "#FFECC8",
+    bookmarked: false,
   },
   {
     id: "6",
@@ -69,5 +74,6 @@ export const recentSessions = [
     topic: "The Basics of Supply & Demand",
     duration: 10,
     color: "#C8FFDF",
+    bookmarked: false,
   },
 ];
