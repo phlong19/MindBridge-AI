@@ -9,7 +9,7 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "Create Next App", // TODO: think a cool name
+  title: "MindBridge AI - Your trusted learning companions",
   description: "Real-time AI Teaching / E-Learning Platform",
 };
 
