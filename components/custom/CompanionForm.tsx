@@ -7,7 +7,6 @@ import { z } from "zod";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -23,6 +22,7 @@ import {
   SelectValue,
 } from "../ui/Select";
 import { subjects } from "@/constants";
+import { Textarea } from "../ui/Textarea";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Please enter your companion's name" }),
@@ -34,7 +34,7 @@ const formSchema = z.object({
 });
 
 const CompanionForm = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState("");
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,10 +47,14 @@ const CompanionForm = () => {
     },
   });
 
+  function onOpenSelect(name: string) {
+    setIsOpen((prev) => (prev === name ? "" : name));
+  }
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
   }
-  console.log(isOpen);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -61,7 +65,7 @@ const CompanionForm = () => {
             <FormItem>
               <FormLabel>Name of the companion</FormLabel>
               <FormControl>
-                <Input placeholder="Devin the IT smart" {...field} />
+                <Input placeholder="Devin the nerd" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -76,21 +80,15 @@ const CompanionForm = () => {
               <FormControl>
                 <Select
                   onValueChange={field.onChange}
-                  onOpenChange={(o) => setIsOpen(o)}
+                  onOpenChange={() => onOpenSelect(field.name)}
                   value={field.value}
                 >
-                  <SelectTrigger
-                    className={`input w-full capitalize ${isOpen ? "!border-primary shadow-primary border-2 shadow-2xl" : "!border-input"}`}
-                  >
+                  <SelectTrigger isOpen={isOpen === field.name}>
                     <SelectValue placeholder="subject" />
                   </SelectTrigger>
                   <SelectContent>
                     {subjects.map((subject) => (
-                      <SelectItem
-                        className="hover:!bg-primary capitalize hover:!text-white"
-                        key={subject}
-                        value={subject}
-                      >
+                      <SelectItem key={subject} value={subject}>
                         {subject}
                       </SelectItem>
                     ))}
@@ -110,12 +108,44 @@ const CompanionForm = () => {
                 What kind of support should the companion offer?
               </FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Enter your topics, separate by space"
+                <Textarea
+                  placeholder="Don't hold back 😄 Say stuff like ‘explain integration like I’m five’"
                   {...field}
                 />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="voice"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Voice</FormLabel>
+              <FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  onOpenChange={() => onOpenSelect(field.name)}
+                >
+                  <SelectTrigger isOpen={isOpen === field.name}>
+                    <SelectValue placeholder="Choose your companion voice" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {["male", "female"].map((gender) => (
+                      <SelectItem
+                        key={gender}
+                        value={gender}
+                        className="capitalize"
+                      >
+                        {gender}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
             </FormItem>
           )}
         />
@@ -126,14 +156,23 @@ const CompanionForm = () => {
             <FormItem>
               <FormLabel>Style</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Styling your companion's characteristic"
-                  {...field}
-                />
+                <Select
+                  onValueChange={field.onChange}
+                  onOpenChange={() => onOpenSelect(field.name)}
+                  value={field.value}
+                >
+                  <SelectTrigger isOpen={isOpen === field.name}>
+                    <SelectValue placeholder="style" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["formal", "casual"].map((style) => (
+                      <SelectItem key={style} value={style}>
+                        {style}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
-              <FormDescription className="italic">
-                Strict, teasing, sympathy,..
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
