@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -49,7 +50,19 @@ const Navbar = () => {
             </Link>
           ))}
         </nav>
-        <Link href="/auth/login">Login</Link>
+        <SignedOut>
+          <SignInButton>
+            <button className="btn-login">Login</button>
+          </SignInButton>
+          {/* <SignUpButton>
+          <button className="h-10 cursor-pointer rounded-full bg-[#6c47ff] px-4 text-sm font-medium text-white sm:h-12 sm:px-5 sm:text-base">
+            Sign Up
+          </button>
+        </SignUpButton> */}
+        </SignedOut>
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
       </div>
     </nav>
   );

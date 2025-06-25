@@ -172,7 +172,7 @@ body {
   .navbar {
     @apply mx-auto flex w-full items-center justify-between bg-white px-14 py-4 max-sm:px-4;
   }
-  .btn-signin {
+  .btn-login {
     @apply flex cursor-pointer items-center gap-2 rounded-4xl border border-black px-4 py-2.5 text-sm font-semibold;
   }
   .companion-list {
