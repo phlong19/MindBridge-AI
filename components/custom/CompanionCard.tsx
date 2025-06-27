@@ -1,6 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import { useState } from "react";
 
 interface Props {
   id: string;
@@ -20,12 +22,22 @@ const CompanionCard = ({
   subject,
   topic,
 }: Props) => {
+  const [hover, setHover] = useState(false);
+
   return (
-    <article style={{ backgroundColor: color }} className="companion-card">
+    <article
+      style={{ backgroundColor: color, filter: hover ? "invert(1)" : "" }}
+      className="companion-card"
+    >
       <div className="flex items-center justify-between">
         <div className="subject-badge">{subject}</div>
 
-        <button className="companion-bookmark">
+        <button
+          type="button"
+          title="Bookmark"
+          aria-label="Bookmark button"
+          className="companion-bookmark"
+        >
           <Image
             src="/icons/bookmark.svg"
             alt="bookmark"
@@ -48,7 +60,13 @@ const CompanionCard = ({
       </div>
 
       <Link href={`/companions/${id}`} className="w-full">
-        <button className="btn-primary w-full justify-center capitalize">
+        <button
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          type="button"
+          aria-label="View lesson button"
+          className="btn-primary w-full justify-center border border-black/80 capitalize"
+        >
           view lesson
         </button>
       </Link>
