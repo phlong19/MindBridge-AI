@@ -18,7 +18,7 @@ const navLinks: NavLink[] = [
     label: "Home",
   },
   { label: "Companions", href: "/companions" },
-  { label: "My Profile", href: "/profile" },
+  { label: "Subscription", href: "/subscription" },
   // { label: "Login", href: "/auth/login" },
 ];
 
@@ -52,7 +52,9 @@ const Navbar = () => {
         </nav>
         <SignedOut>
           <SignInButton>
-            <button className="btn-login">Login</button>
+            <button type="button" className="btn-login">
+              Login
+            </button>
           </SignInButton>
           {/* <SignUpButton>
           <button className="h-10 cursor-pointer rounded-full bg-[#6c47ff] px-4 text-sm font-medium text-white sm:h-12 sm:px-5 sm:text-base">

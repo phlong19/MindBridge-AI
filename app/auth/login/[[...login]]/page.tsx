@@ -3,7 +3,7 @@ import React from "react";
 
 const Page = () => {
   return (
-    <main className="flex items-center justify-center">
+    <main className="mt-20 flex items-center justify-center">
       <SignIn />
     </main>
   );
