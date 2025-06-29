@@ -15,12 +15,12 @@ const CTA = () => {
         voice conversations that feel truly nature and joy.
       </p>
       <Image src="/images/cta.svg" alt="cta" width={360} height={230} />
-      <Button className="flex items-baseline">
-        <Image src="/icons/plus.svg" alt="add" width={12} height={12} />
-        <Link href="/companions/new">
+      <Link href="/companions/new">
+        <Button className="flex items-baseline">
+          <Image src="/icons/plus.svg" alt="add" width={12} height={12} />
           <p>Build a new Companion</p>
-        </Link>
-      </Button>
+        </Button>
+      </Link>
     </section>
   );
 };
