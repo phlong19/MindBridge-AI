@@ -227,3 +227,27 @@ body {
     scrollbar-width: none;
   }
 }
+
+.loader-wrapper {
+  min-height: 60dvh;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loader {
+  width: 40px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 5px solid var(--primary);
+  border-right-color: var(--card);
+  animation: l2 1s infinite linear;
+}
+@keyframes l2 {
+  to {
+    transform: rotate(1turn);
+  }
+}

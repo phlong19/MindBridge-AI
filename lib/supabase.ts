@@ -1,4 +1,5 @@
 import { error } from "@/constants/message";
+import { Database } from "@/types/supabase";
 import { auth } from "@clerk/nextjs/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -9,7 +10,7 @@ export const createSupabaseClient = () => {
   if (!url || !key) {
     throw new Error(error.missingEnvVariables);
   }
-  return createClient(url, key, {
+  return createClient<Database>(url, key, {
     async accessToken() {
       return (await auth()).getToken();
     },
