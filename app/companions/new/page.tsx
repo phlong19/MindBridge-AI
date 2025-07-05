@@ -4,8 +4,7 @@ import { redirect } from "next/navigation";
 import React from "react";
 
 async function Page() {
-  // const { userId}  = await auth();
-  const userId = "235352";
+  const { userId } = await auth();
 
   if (!userId) {
     redirect(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!);

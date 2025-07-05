@@ -23,6 +23,8 @@ import {
 import { subjects } from "@/constants";
 import { Textarea } from "../ui/Textarea";
 import { createCompanion } from "@/lib/services/companion";
+import { redirect } from "next/navigation";
+import { useState } from "react";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Please enter your companion's name" }),
@@ -34,6 +36,8 @@ const formSchema = z.object({
 });
 
 const CompanionForm = () => {
+  const [isOpen, setIsOpen] = useState("");
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -46,9 +50,18 @@ const CompanionForm = () => {
     },
   });
 
+  function onOpenSelect(name: string) {
+    setIsOpen((prev) => (prev === name ? "" : name));
+  }
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    return console.log(values);
-    const companion = await createCompanion();
+    const companion = await createCompanion(values);
+
+    if (companion) {
+      redirect(`/companions/${companion.id}`);
+    } else {
+      redirect("/");
+    }
   }
 
   return (
@@ -74,8 +87,12 @@ const CompanionForm = () => {
             <FormItem>
               <FormLabel>Select subject</FormLabel>
               <FormControl>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
+                <Select
+                  onValueChange={field.onChange}
+                  onOpenChange={() => onOpenSelect(field.name)}
+                  value={field.value}
+                >
+                  <SelectTrigger isOpen={isOpen === field.name}>
                     <SelectValue placeholder="subject" />
                   </SelectTrigger>
                   <SelectContent>
@@ -116,8 +133,12 @@ const CompanionForm = () => {
             <FormItem>
               <FormLabel>Voice</FormLabel>
               <FormControl>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
+                <Select
+                  onValueChange={field.onChange}
+                  onOpenChange={() => onOpenSelect(field.name)}
+                  value={field.value}
+                >
+                  <SelectTrigger isOpen={isOpen === field.name}>
                     <SelectValue placeholder="Choose your companion voice" />
                   </SelectTrigger>
 
@@ -144,8 +165,12 @@ const CompanionForm = () => {
             <FormItem>
               <FormLabel>Style</FormLabel>
               <FormControl>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
+                <Select
+                  onValueChange={field.onChange}
+                  onOpenChange={() => setIsOpen(field.name)}
+                  value={field.value}
+                >
+                  <SelectTrigger isOpen={isOpen === field.name}>
                     <SelectValue placeholder="style" />
                   </SelectTrigger>
                   <SelectContent>
