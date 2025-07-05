@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -23,6 +22,9 @@ import {
 } from "../ui/Select";
 import { subjects } from "@/constants";
 import { Textarea } from "../ui/Textarea";
+import { createCompanion } from "@/lib/services/companion";
+import { redirect } from "next/navigation";
+import { useState } from "react";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Please enter your companion's name" }),
@@ -35,6 +37,7 @@ const formSchema = z.object({
 
 const CompanionForm = () => {
   const [isOpen, setIsOpen] = useState("");
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -51,8 +54,14 @@ const CompanionForm = () => {
     setIsOpen((prev) => (prev === name ? "" : name));
   }
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const companion = await createCompanion(values);
+
+    if (companion) {
+      redirect(`/companions/${companion.id}`);
+    } else {
+      redirect("/");
+    }
   }
 
   return (
@@ -126,8 +135,8 @@ const CompanionForm = () => {
               <FormControl>
                 <Select
                   onValueChange={field.onChange}
-                  value={field.value}
                   onOpenChange={() => onOpenSelect(field.name)}
+                  value={field.value}
                 >
                   <SelectTrigger isOpen={isOpen === field.name}>
                     <SelectValue placeholder="Choose your companion voice" />
@@ -158,7 +167,7 @@ const CompanionForm = () => {
               <FormControl>
                 <Select
                   onValueChange={field.onChange}
-                  onOpenChange={() => onOpenSelect(field.name)}
+                  onOpenChange={() => setIsOpen(field.name)}
                   value={field.value}
                 >
                   <SelectTrigger isOpen={isOpen === field.name}>
