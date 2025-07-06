@@ -4,125 +4,125 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[]
+  | Json[];
 
 export type Database = {
   graphql_public: {
     Tables: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
       graphql: {
         Args: {
-          operationName?: string
-          query?: string
-          variables?: Json
-          extensions?: Json
-        }
-        Returns: Json
-      }
-    }
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+          extensions?: Json;
+        };
+        Returns: Json;
+      };
+    };
     Enums: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
       companions: {
         Row: {
-          author: string | null
-          created_at: string
-          duration: number | null
-          id: string
-          name: string | null
-          style: string | null
-          subject: string | null
-          topic: string | null
-          voice: string | null
-        }
+          author: string;
+          created_at: string;
+          duration: number;
+          id: string;
+          name: string;
+          style: string;
+          subject: string;
+          topic: string;
+          voice: string;
+        };
         Insert: {
-          author?: string | null
-          created_at?: string
-          duration?: number | null
-          id?: string
-          name?: string | null
-          style?: string | null
-          subject?: string | null
-          topic?: string | null
-          voice?: string | null
-        }
+          author?: string | null;
+          created_at?: string;
+          duration?: number | null;
+          id?: string;
+          name?: string | null;
+          style?: string | null;
+          subject?: string | null;
+          topic?: string | null;
+          voice?: string | null;
+        };
         Update: {
-          author?: string | null
-          created_at?: string
-          duration?: number | null
-          id?: string
-          name?: string | null
-          style?: string | null
-          subject?: string | null
-          topic?: string | null
-          voice?: string | null
-        }
-        Relationships: []
-      }
+          author?: string | null;
+          created_at?: string;
+          duration?: number | null;
+          id?: string;
+          name?: string | null;
+          style?: string | null;
+          subject?: string | null;
+          topic?: string | null;
+          voice?: string | null;
+        };
+        Relationships: [];
+      };
       "session-history": {
         Row: {
-          companion_id: string | null
-          created_at: string
-          id: number
-          user_id: string | null
-        }
+          companion_id: string | null;
+          created_at: string;
+          id: number;
+          user_id: string | null;
+        };
         Insert: {
-          companion_id?: string | null
-          created_at?: string
-          id?: number
-          user_id?: string | null
-        }
+          companion_id?: string | null;
+          created_at?: string;
+          id?: number;
+          user_id?: string | null;
+        };
         Update: {
-          companion_id?: string | null
-          created_at?: string
-          id?: number
-          user_id?: string | null
-        }
+          companion_id?: string | null;
+          created_at?: string;
+          id?: number;
+          user_id?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "session-history_companion_id_fkey"
-            columns: ["companion_id"]
-            isOneToOne: false
-            referencedRelation: "companions"
-            referencedColumns: ["id"]
+            foreignKeyName: "session-history_companion_id_fkey";
+            columns: ["companion_id"];
+            isOneToOne: false;
+            referencedRelation: "companions";
+            referencedColumns: ["id"];
           },
-        ]
-      }
-    }
+        ];
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Enums: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DefaultSchema = Database[Extract<keyof Database, "public">];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof Database;
   }
     ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
@@ -130,7 +130,7 @@ export type Tables<
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
+      Row: infer R;
     }
     ? R
     : never
@@ -138,64 +138,64 @@ export type Tables<
         DefaultSchema["Views"])
     ? (DefaultSchema["Tables"] &
         DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
+        Row: infer R;
       }
       ? R
       : never
-    : never
+    : never;
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof Database;
   }
     ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
+      Insert: infer I;
     }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
+        Insert: infer I;
       }
       ? I
       : never
-    : never
+    : never;
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof Database;
   }
     ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
+      Update: infer U;
     }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
+        Update: infer U;
       }
       ? U
       : never
-    : never
+    : never;
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof Database },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof Database;
   }
     ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
@@ -203,14 +203,14 @@ export type Enums<
   ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+    : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof Database;
   }
     ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
@@ -218,7 +218,7 @@ export type CompositeTypes<
   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+    : never;
 
 export const Constants = {
   graphql_public: {
@@ -227,4 +227,4 @@ export const Constants = {
   public: {
     Enums: {},
   },
-} as const
+} as const;

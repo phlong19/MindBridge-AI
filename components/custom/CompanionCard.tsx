@@ -7,7 +7,7 @@ import { useState } from "react";
 interface Props {
   id: string;
   name: string;
-  slug: string;
+  slug?: string;
   topic: string;
   subject: string;
   duration: number;

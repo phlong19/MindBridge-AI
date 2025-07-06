@@ -1,21 +1,71 @@
 import { getCompanionList } from "@/lib/services/companion";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+// import {
+//   Pagination,
+//   PaginationContent,
+//   PaginationEllipsis,
+//   PaginationItem,
+//   PaginationLink,
+//   PaginationNext,
+//   PaginationPrevious,
+// } from "@/components/ui/Pagination";
+import Searchbar from "@/components/custom/Searchbar";
+import Filter from "@/components/custom/Filter";
+import CompanionCard from "@/components/custom/CompanionCard";
+import { getSubjectColor } from "@/lib/utils";
+import { TypographyH4 } from "@/components/ui/Typography";
 
-const Page = async () => {
+const Page = async ({ searchParams }: SearchParams) => {
   const { userId } = await auth();
 
   if (!userId) {
     redirect(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!);
   }
+  const params = await searchParams;
+  const { limit, page, topic, subject } = params;
 
-  const data = await getCompanionList();
+  const currentPage = Number(page) || undefined;
+  const itemPerPage = Number(limit) || undefined;
+
+  const { data, error, count } = await getCompanionList({
+    limit: itemPerPage,
+    page: currentPage,
+    subject,
+    topic,
+  });
 
   return (
     <main>
-      <textarea placeholder="hehe" name="test" id="test">
-        {JSON.stringify(data, null, 2)}
-      </textarea>
+      <section className="flex justify-between gap-4 max-sm:flex-col">
+        <h1>Companion Library</h1>
+
+        <div className="flex gap-4">
+          <Searchbar />
+          <Filter />
+        </div>
+      </section>
+      <div>
+        {error || !data ? (
+          <div className="container mx-auto flex h-60 flex-col items-center justify-center">
+            <TypographyH4 className="text-red-500">{error}</TypographyH4>
+            <p>add hint</p>
+          </div>
+        ) : (
+          <>
+            <section className="companions-grid">
+              {data.map((companion) => (
+                <CompanionCard
+                  key={companion.id}
+                  {...companion}
+                  color={getSubjectColor(companion.subject ?? "")}
+                />
+              ))}
+            </section>
+            <p className="mt-10">Total: {count}</p>
+          </>
+        )}
+      </div>
     </main>
   );
 };
