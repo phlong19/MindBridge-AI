@@ -26,8 +26,9 @@ const SubjectIcon = ({
       <Image
         src={`/icons/${subject}.svg`}
         alt={subject}
-        width={width}
-        height={height}
+        width={0}
+        height={0}
+        style={{ width, height }}
       />
     </div>
   );

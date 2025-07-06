@@ -14,10 +14,22 @@ const CTA = () => {
         Pick a name, subject, voice & personality - and start learning through
         voice conversations that feel truly nature and joy.
       </p>
-      <Image src="/images/cta.svg" alt="cta" width={360} height={230} />
+      <Image
+        src="/images/cta.svg"
+        alt="cta"
+        width={0}
+        height={0}
+        style={{ width: 360, height: 230 }}
+      />
       <Link href="/companions/new">
         <Button className="flex items-baseline">
-          <Image src="/icons/plus.svg" alt="add" width={12} height={12} />
+          <Image
+            src="/icons/plus.svg"
+            alt="add"
+            width={0}
+            height={0}
+            style={{ width: 12, height: 12 }}
+          />
           <p>Build a new Companion</p>
         </Button>
       </Link>
