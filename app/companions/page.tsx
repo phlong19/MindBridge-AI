@@ -11,10 +11,10 @@ import { redirect } from "next/navigation";
 //   PaginationPrevious,
 // } from "@/components/ui/Pagination";
 import Searchbar from "@/components/custom/Searchbar";
-import Filter from "@/components/custom/Filter";
 import CompanionCard from "@/components/custom/CompanionCard";
 import { getSubjectColor } from "@/lib/utils";
 import { TypographyH4 } from "@/components/ui/Typography";
+import SubjectFilter from "@/components/custom/SubjectFilter";
 
 const Page = async ({ searchParams }: SearchParams) => {
   const { userId } = await auth();
@@ -40,9 +40,9 @@ const Page = async ({ searchParams }: SearchParams) => {
       <section className="flex justify-between gap-4 max-sm:flex-col">
         <h1>Companion Library</h1>
 
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-2 md:flex-row">
           <Searchbar />
-          <Filter />
+          <SubjectFilter />
         </div>
       </section>
       <div>
