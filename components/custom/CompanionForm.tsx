@@ -25,6 +25,7 @@ import { Textarea } from "../ui/Textarea";
 import { createCompanion } from "@/lib/services/companion";
 import { redirect } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Please enter your companion's name" }),
@@ -55,12 +56,13 @@ const CompanionForm = () => {
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const companion = await createCompanion(values);
+    const { companion, error } = await createCompanion(values);
 
     if (companion) {
       redirect(`/companions/${companion.id}`);
     } else {
-      redirect("/");
+      // show toast instead of redirect, which is bad UX
+      toast(error);
     }
   }
 

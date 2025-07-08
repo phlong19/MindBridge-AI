@@ -15,6 +15,7 @@ import CompanionCard from "@/components/custom/CompanionCard";
 import { getSubjectColor } from "@/lib/utils";
 import { TypographyH4 } from "@/components/ui/Typography";
 import SubjectFilter from "@/components/custom/SubjectFilter";
+import { error as errorMessage } from "@/constants/message";
 
 const Page = async ({ searchParams }: SearchParams) => {
   const { userId } = await auth();
@@ -28,7 +29,7 @@ const Page = async ({ searchParams }: SearchParams) => {
   const currentPage = Number(page) || undefined;
   const itemPerPage = Number(limit) || undefined;
 
-  const { data, error, count } = await getCompanionList({
+  const { data, error, count, errorDescription } = await getCompanionList({
     limit: itemPerPage,
     page: currentPage,
     subject,
@@ -49,21 +50,24 @@ const Page = async ({ searchParams }: SearchParams) => {
         {error || !data ? (
           <div className="container mx-auto flex h-60 flex-col items-center justify-center">
             <TypographyH4 className="text-red-500">{error}</TypographyH4>
-            <p>add hint</p>
+            {errorDescription && <i className="">{errorDescription}</i>}
           </div>
+        ) : count === 0 ? (
+          <section className="mt-10">
+            <TypographyH4 className="text-muted-foreground">
+              {errorMessage.noResults}
+            </TypographyH4>
+          </section>
         ) : (
-          <>
-            <section className="companions-grid">
-              {data.map((companion) => (
-                <CompanionCard
-                  key={companion.id}
-                  {...companion}
-                  color={getSubjectColor(companion.subject ?? "")}
-                />
-              ))}
-            </section>
-            <p className="mt-10">Total: {count}</p>
-          </>
+          <section className="companions-grid">
+            {data.map((companion) => (
+              <CompanionCard
+                key={companion.id}
+                {...companion}
+                color={getSubjectColor(companion.subject ?? "")}
+              />
+            ))}
+          </section>
         )}
       </div>
     </main>

@@ -26,7 +26,7 @@ const Searchbar = () => {
       }
 
       router.push(pathName + `?${params.toString()}`);
-    }, 500);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [query, inputValue, pathName, router, searchParams]);

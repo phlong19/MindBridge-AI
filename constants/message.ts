@@ -5,6 +5,8 @@ export const error = {
     "Unable to fetch data. Please check the server or try again later.",
   getDetailFail:
     "Failed to retrieve your companion. Please ensure the item exists or try again later.",
+  noResults:
+    "We can't find any results matched your search. Please try a different search.",
   notAuthorized: "You are not authorized to access this resource.",
   notAuthenticated: "Authentication required. Please log in to continue.",
   accessDenied:

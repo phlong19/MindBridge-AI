@@ -17,10 +17,10 @@ export async function createCompanion(formData: CreateCompanion) {
 
   if (error && !data) {
     console.log(error.message);
-    throw new Error(errorMessage.insertFail);
+    return { error: errorMessage.insertFail };
   }
 
-  return data[0];
+  return { companion: data[0] };
 }
 //#endregion
 
@@ -39,7 +39,7 @@ export async function getCompanionList({
   const to = from + limit - 1;
 
   if (!userId) {
-    throw new Error(errorMessage.notAuthenticated);
+    return { error: errorMessage.notAuthenticated };
   }
 
   let query = supabase
@@ -60,7 +60,7 @@ export async function getCompanionList({
 
   if (error && !data) {
     console.log(error.message);
-    return { error: errorMessage.fetchFail };
+    return { error: errorMessage.fetchFail, errorDescription: error.message };
   }
 
   return { data, count };
