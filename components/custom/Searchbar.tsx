@@ -1,17 +1,32 @@
 "use client";
 
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Input } from "../ui/Input";
 import { Search } from "lucide-react";
+import { TypographyInlineCode } from "../ui/Typography";
 
 const Searchbar = () => {
   const pathName = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const query = searchParams.get("topic") || "";
   const [inputValue, setInputValue] = useState(query);
+
+  useEffect(() => {
+    function handleKeyPress(e: KeyboardEvent) {
+      if (e.key === "/") {
+        e.preventDefault();
+        inputRef.current?.focus({ preventScroll: false });
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyPress);
+
+    return () => document.removeEventListener("keydown", handleKeyPress);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -37,13 +52,17 @@ const Searchbar = () => {
         <Search className="h-4 w-4" />
       </span>
       <Input
-        className="pl-8"
+        ref={inputRef}
+        className="px-16 pl-8"
         value={inputValue}
         type="text"
         maxLength={255}
-        placeholder="Search by topic.."
+        placeholder="Press / to quick search by topic.."
         onChange={(e) => setInputValue(e.target.value)}
       />
+      <TypographyInlineCode className="border- absolute top-1/2 right-1 -translate-1/2 border bg-[lightgray]/50">
+        /
+      </TypographyInlineCode>
     </div>
   );
 };

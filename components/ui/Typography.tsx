@@ -35,3 +35,21 @@ export function TypographyH4({
     </h4>
   );
 }
+
+export function TypographyInlineCode({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLElement>) {
+  return (
+    <code
+      {...props}
+      className={cn(
+        "bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold",
+        className,
+      )}
+    >
+      {children}
+    </code>
+  );
+}
