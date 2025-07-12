@@ -27,7 +27,7 @@ const CompanionCard = ({
   return (
     <article
       style={{ backgroundColor: color, filter: hover ? "invert(1)" : "" }}
-      className="companion-card"
+      className="companion-card transition-all duration-300"
     >
       <div className="flex items-center justify-between">
         <div className="subject-badge">{subject}</div>

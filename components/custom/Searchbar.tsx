@@ -11,14 +11,16 @@ const Searchbar = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [isFocus, setIsFocus] = useState(false);
 
   const query = searchParams.get("topic") || "";
   const [inputValue, setInputValue] = useState(query);
 
   useEffect(() => {
     function handleKeyPress(e: KeyboardEvent) {
-      if (e.key === "/") {
+      if (e.key === "/" && !isFocus) {
         e.preventDefault();
+        setIsFocus(true);
         inputRef.current?.focus({ preventScroll: false });
       }
     }
@@ -26,7 +28,7 @@ const Searchbar = () => {
     document.addEventListener("keydown", handleKeyPress);
 
     return () => document.removeEventListener("keydown", handleKeyPress);
-  }, []);
+  }, [isFocus]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -52,6 +54,7 @@ const Searchbar = () => {
         <Search className="h-4 w-4" />
       </span>
       <Input
+        onBlur={() => setIsFocus(false)}
         ref={inputRef}
         className="px-16 pl-8"
         value={inputValue}

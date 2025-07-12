@@ -66,3 +66,20 @@ export async function getCompanionList({
   return { data, count };
 }
 //#endregion
+
+//#region get detail
+export async function getCompanion(id: string) {
+  const supabase = createSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("companions")
+    .select()
+    .eq("id", id);
+
+  if (error && !data) {
+    console.log(error.message);
+    return { error: errorMessage.getDetailFail };
+  }
+
+  return { companion: data[0] };
+}
