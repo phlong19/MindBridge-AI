@@ -33,9 +33,10 @@ const Navbar = () => {
             src="/images/logo.svg"
             title="MindBridge AI"
             alt="logo"
-            width={0}
-            height={0}
-            style={{ width: 46, height: 44 }}
+            width={46}
+            height={44}
+            priority
+            style={{ width: "auto", height: "auto" }}
           />
         </div>
       </Link>

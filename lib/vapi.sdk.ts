@@ -1,10 +1,10 @@
 import { error } from "@/constants/message";
 import Vapi from "@vapi-ai/web";
 
-const VAPI_PUBLIC_KEY = process.env.NEXT_VAPI_PUBLIC_KEY;
+const key = process.env.NEXT_PUBLIC_VAPI_WEB_TOKEN;
 
-if (!VAPI_PUBLIC_KEY) {
+if (!key) {
   throw new Error(error.missingEnvVariables);
 }
 
-export const vapi = new Vapi(VAPI_PUBLIC_KEY);
+export const vapi = new Vapi(key);
