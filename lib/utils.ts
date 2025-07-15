@@ -59,3 +59,26 @@ export const getSubjectColor = (subject: string) => {
 //   };
 //   return vapiAssistant;
 // };
+
+// import fetch from 'node-fetch'; // for server use
+// const AUTH_TOKEN = 'Bearer TOKEN'; // put somewhere configurable, saved in db
+// // require to execute immediately to make sure the token still valid
+
+// const PROVIDERS = ['11labs', 'openai', 'playht', 'azure'];
+
+// async function fetchVoices(provider:string) {
+//   const res = await fetch(`https://api.vapi.ai/voice-library/${provider}?limit=100`, {
+//     headers: {
+//       Authorization: AUTH_TOKEN,
+//       'Content-Type': 'application/json'
+//     }
+//   });
+
+//   if (!res.ok) {
+//     console.error(`Failed to fetch for ${provider}:`, await res.text());
+//     return [];
+//   }
+
+//   const data = await res.json();
+//   return Array.isArray(data) ? data : [data];
+// }
