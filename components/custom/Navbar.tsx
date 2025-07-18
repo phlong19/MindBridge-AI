@@ -19,7 +19,6 @@ const navLinks: NavLink[] = [
   },
   { label: "Companions", href: "/companions" },
   { label: "Subscription", href: "/subscription" },
-  // { label: "Login", href: "/auth/login" },
 ];
 
 const Navbar = () => {
@@ -36,7 +35,6 @@ const Navbar = () => {
             width={46}
             height={44}
             priority
-            style={{ width: "auto", height: "auto" }}
           />
         </div>
       </Link>

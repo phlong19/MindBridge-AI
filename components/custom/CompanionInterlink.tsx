@@ -1,11 +1,12 @@
 "use client";
 
-import { cn, getSubjectColor } from "@/lib/utils";
+import { cn, configureAssistant, getSubjectColor } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import Lottie, { LottieRefCurrentProps } from "lottie-react";
 import soundWaveAnimation from "@/constants/sound-voice.json";
+import { AssistantOverrides } from "@vapi-ai/web/dist/api";
 
 enum ECallStatus {
   INACTIVE = "INACTIVE",
@@ -89,12 +90,30 @@ function CompanionInterlink({
     setIsMuted(!isMuted);
   }
 
-  function handleConnect() {
-    //
+  async function handleConnect() {
+    setCallStatus(ECallStatus.CONNECTING);
+    const assistantOverrides: AssistantOverrides = {
+      variableValues: {
+        subject,
+        topic,
+        style,
+      },
+      clientMessages: "transcript",
+    };
+
+    const call = await vapi.start(
+      configureAssistant(voice, style),
+      assistantOverrides,
+    );
+
+    if (call) {
+      setCallStatus(ECallStatus.ACTIVE);
+    }
   }
 
   function handleDisconnect() {
     //
+    vapi.stop();
   }
 
   return (

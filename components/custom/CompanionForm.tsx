@@ -10,6 +10,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "../ui/Form";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
@@ -26,13 +27,15 @@ import { createCompanion } from "@/lib/services/companion";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import Switch from "../ui/Switch";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Please enter your companion's name" }),
   subject: z.string().min(1, { message: "Subject is required" }),
   topic: z.string().min(1, { message: "Topic is required" }),
-  voice: z.string().min(1, { message: "Voice is required" }),
-  style: z.string().min(1, { message: "Style is required" }),
+  gender: z.coerce.boolean(),
+  voiceId: z.string().min(1, { message: "Please select a voice model" }),
+  style: z.coerce.boolean(),
   duration: z.coerce.number().min(1, { message: "Duration is required" }),
 });
 
@@ -45,9 +48,10 @@ const CompanionForm = () => {
       name: "",
       subject: "",
       topic: "",
-      voice: "",
-      style: "",
+      gender: false,
+      style: false,
       duration: 15,
+      voiceId: "",
     },
   });
 
@@ -120,7 +124,7 @@ const CompanionForm = () => {
               </FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Don't hold back 😄 Say stuff like ‘explain integration like I’m five’"
+                  placeholder={`Don't hold back even when have to say stuff like "explain like I’m five’" 😄🖐️`}
                   {...field}
                 />
               </FormControl>
@@ -130,32 +134,17 @@ const CompanionForm = () => {
         />
         <FormField
           control={form.control}
-          name="voice"
+          name="gender"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Voice</FormLabel>
+            <FormItem className="flex items-center gap-8">
+              <FormLabel>Gender</FormLabel>
               <FormControl>
-                <Select
-                  onValueChange={field.onChange}
-                  onOpenChange={() => onOpenSelect(field.name)}
-                  value={field.value}
-                >
-                  <SelectTrigger isOpen={isOpen === field.name}>
-                    <SelectValue placeholder="Choose your companion voice" />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    {["male", "female"].map((gender) => (
-                      <SelectItem
-                        key={gender}
-                        value={gender}
-                        className="capitalize"
-                      >
-                        {gender}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Switch
+                  leftLabel="Female"
+                  rightLabel="Male"
+                  onCheckedChange={field.onChange}
+                  checked={field.value}
+                />
               </FormControl>
             </FormItem>
           )}
@@ -164,27 +153,54 @@ const CompanionForm = () => {
           control={form.control}
           name="style"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex items-center gap-8">
               <FormLabel>Style</FormLabel>
+              <FormControl>
+                <Switch
+                  leftLabel="Casual"
+                  rightLabel="Formal"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="voiceId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Voice</FormLabel>
+              <FormDescription>Based on Gender and Style</FormDescription>
               <FormControl>
                 <Select
                   onValueChange={field.onChange}
-                  onOpenChange={() => setIsOpen(field.name)}
+                  onOpenChange={() => onOpenSelect(field.name)}
                   value={field.value}
                 >
                   <SelectTrigger isOpen={isOpen === field.name}>
-                    <SelectValue placeholder="style" />
+                    <SelectValue placeholder="Select voice model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {["formal", "casual"].map((style) => (
-                      <SelectItem key={style} value={style}>
-                        {style}
+                    {subjects.map((subject) => (
+                      <SelectItem key={subject} value={subject}>
+                        {subject}
+                        <Button
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log(2);
+                          }}
+                        >
+                          x
+                        </Button>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -201,7 +217,12 @@ const CompanionForm = () => {
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        <div className="flex items-center justify-between">
+          <Button variant="outline" onClick={() => form.reset()} type="reset">
+            Reset
+          </Button>
+          <Button type="submit">Submit</Button>
+        </div>
       </form>
     </Form>
   );
