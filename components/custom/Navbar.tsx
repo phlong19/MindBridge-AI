@@ -19,7 +19,6 @@ const navLinks: NavLink[] = [
   },
   { label: "Companions", href: "/companions" },
   { label: "Subscription", href: "/subscription" },
-  // { label: "Login", href: "/auth/login" },
 ];
 
 const Navbar = () => {
@@ -33,9 +32,9 @@ const Navbar = () => {
             src="/images/logo.svg"
             title="MindBridge AI"
             alt="logo"
-            width={0}
-            height={0}
-            style={{ width: 46, height: 44 }}
+            width={46}
+            height={44}
+            priority
           />
         </div>
       </Link>

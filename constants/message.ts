@@ -20,7 +20,9 @@ export const error = {
   permissionDenied: "Permission denied. You do not have the necessary rights.",
   dataConflict: "Data conflict detected. Please resolve and try again.",
   timeoutError: "Request timed out. Please try again.",
-  invalidToken: "Invalid or expired token. Please authenticate again.",
+  invalidTokenContainSpace:
+    "Invalid token format. It should not contain any white space.",
+  invalidToken: "Invalid or expired token. Please get a new one.",
   missingParameter:
     "A required parameter is missing. Please check your request and try again.",
   unknownError: "An unknown error occurred. Please try again later.",

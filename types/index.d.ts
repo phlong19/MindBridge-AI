@@ -31,9 +31,10 @@ interface CreateCompanion {
   name: string;
   subject: string;
   topic: string;
-  voice: string;
-  style: string;
+  gender: boolean;
+  style: boolean;
   duration: number;
+  voiceId: string;
 }
 
 interface GetAllCompanions {
@@ -80,4 +81,25 @@ interface CompanionComponentProps {
   userImage: string;
   voice: string;
   style: string;
+}
+
+interface VoiceGroup {
+  male: Voice[];
+  female: Voice[];
+}
+
+interface Voice {
+  id: string;
+  provider: "11labs"; // support more later
+  providerId: string; // future scaling
+  slug: string;
+  name: string;
+  gender: "male" | "female";
+  accent: string;
+  previewUrl: string;
+  createdAt: string;
+  updatedAt: string;
+  description: string;
+  isPublic: boolean;
+  isDeleted: boolean;
 }
