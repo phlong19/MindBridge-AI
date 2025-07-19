@@ -10,7 +10,11 @@ export const getSubjectColor = (subject: string) => {
   return subjectsColors[subject as keyof typeof subjectsColors];
 };
 
-export const configureAssistant = (voices:VoiceGroup, voice: string, style: string) => {
+export const configureAssistant = (
+  voices: VoiceGroup,
+  voice: string,
+  style: string,
+) => {
   const assistant: CreateAssistantDTO = {
     name: "Companion",
     firstMessage:
@@ -63,14 +67,7 @@ export const configureAssistant = (voices:VoiceGroup, voice: string, style: stri
 // const PROVIDERS = ['11labs', 'openai', 'playht', 'azure'];
 
 // async function fetchVoices(provider: string, token: string) {
-// // in case the input includes `Bearer` keyword 
-//   const [prefix, formattedToken] = token.split(' '); // ['Bearer', 'token']    
-//   const decoded = jwtDecode(formattedToken);
-//   if(decoded) {
-//      const { exp } = decoded;
-//      const currentTime = Math.floor(Date.now() / 1000);
-//      setIsExpired(exp < currentTime)
-//   }
+
 //   const res = await fetch(`https://api.vapi.ai/voice-library/${provider}?limit=100`, {
 //     headers: {
 //       Authorization: token,

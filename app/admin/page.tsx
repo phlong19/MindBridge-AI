@@ -1,38 +1,37 @@
 "use client";
 
-import React from "react";
-import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/Button";
 import {
-  FormDescription,
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/Form";
-import { Textarea } from "@/components/ui/Textarea";
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/Card";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export default function Page() {
-  const form = useForm();
   return (
-    <div className="mx-auto max-w-md p-10">
-      <Form {...form}>
-        <FormField
-          control={form.control}
-          name="..."
-          render={() => (
-            <FormItem>
-              <FormLabel>label</FormLabel>
-              <FormControl>
-                <Textarea placeholder="author key" />
-              </FormControl>
-              <FormDescription>des</FormDescription>
-              <FormMessage>message</FormMessage>
-            </FormItem>
-          )}
-        />
-      </Form>
+    <div className="w-full p-10">
+      <Link href="/admin/sync-voices">
+        <Card className="group max-w-lg">
+          <CardHeader>
+            <CardTitle>Sync Voices</CardTitle>
+            <CardDescription>/admin/sync-voices</CardDescription>
+          </CardHeader>
+          <CardContent>
+            Update voices from 11labs, data collected from Vapi API
+          </CardContent>
+          <CardFooter>
+            <Button variant="link">
+              View{" "}
+              <ArrowRight className="transition-transform duration-200 group-hover:translate-x-2" />
+            </Button>
+          </CardFooter>
+        </Card>
+      </Link>
     </div>
   );
 }

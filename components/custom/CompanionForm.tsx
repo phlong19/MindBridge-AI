@@ -72,7 +72,7 @@ const CompanionForm = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-8">
         <FormField
           control={form.control}
           name="name"
@@ -187,15 +187,6 @@ const CompanionForm = () => {
                     {subjects.map((subject) => (
                       <SelectItem key={subject} value={subject}>
                         {subject}
-                        <Button
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            console.log(2);
-                          }}
-                        >
-                          x
-                        </Button>
                       </SelectItem>
                     ))}
                   </SelectContent>
