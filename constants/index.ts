@@ -77,3 +77,58 @@ export const recentSessions = [
     bookmarked: false,
   },
 ];
+
+export const fakeVoices: Voice[] = [
+  {
+    id: "849bf79c-1d04-4791-bc0b-fea6416762dc",
+    provider: "11labs",
+    providerId: "bIHbv24MWmeRgasZH58o",
+    slug: "bIHbv24MWmeRgasZH58o",
+    name: "Will",
+    gender: "male",
+    accent: "",
+    previewUrl:
+      "https://storage.googleapis.com/eleven-public-prod/premade/voices/bIHbv24MWmeRgasZH58o/8caf8f3d-ad29-4980-af41-53f20c72d7a4.mp3",
+    createdAt: "2024-07-19T18:40:36.040Z",
+    updatedAt: "2024-07-19T18:40:36.040Z",
+    description: "",
+    isPublic: true,
+    isDeleted: false,
+    orgId: "aa4c36ba-db21-4ce0-9c6e-bb55a8d2b188",
+  },
+  {
+    id: "f794a0d7-b5b8-4afd-845e-ecfffc113b85",
+    provider: "11labs",
+    providerId: "rECOLXj3kZIXXxR3SBqN",
+    slug: "rECOLXj3kZIXXxR3SBqN",
+    name: "Charlie",
+    gender: "male",
+    accent: "australian",
+    previewUrl:
+      "https://storage.googleapis.com/eleven-public-prod/UwDtqCF44YaL77wxb8DVQlHT5Gp1/voices/muKelCm8QfG9CxzKVjMX/df47951e-da7b-4a7a-a330-c1e9eccb95b9.mp3",
+    createdAt: "2025-01-17T23:37:08.163Z",
+    updatedAt: "2025-01-17T23:37:08.163Z",
+    description: "A full and deep voice. Good for news.",
+    isPublic: false,
+    isDeleted: false,
+    orgId: "aa4c36ba-db21-4ce0-9c6e-bb55a8d2b188",
+  },
+  {
+    id: "44e6d34b-ead5-4a6f-a144-833834fa0c09",
+    provider: "11labs",
+    providerId: "8N2ng9i2uiUWqstgmWlH",
+    slug: "8N2ng9i2uiUWqstgmWlH",
+    name: "Beth - gentle and nurturing",
+    gender: "female",
+    accent: "british",
+    previewUrl:
+      "https://storage.googleapis.com/eleven-public-prod/custom/voices/8N2ng9i2uiUWqstgmWlH/7TvK7CWmBACPLKdPclE6.mp3",
+    createdAt: "2024-07-27T18:18:57.837Z",
+    updatedAt: "2024-07-27T18:18:57.837Z",
+    description:
+      "A warm, comforting, motherly British English woman's voice, clear and easy to understand. Brilliant for use with children's stories and nursery rhymes. It's like having your very own Mary Poppins to read you bedtime books! It's beautiful for teaching, audiobook narration and social media such as YouTube, Tiktok, Reels and Stories. This studio-produced audio is also great for high-quality video dubbing, advertising and reading anything that will help you or your kids relax and unwind.",
+    isPublic: false,
+    isDeleted: false,
+    orgId: "aa4c36ba-db21-4ce0-9c6e-bb55a8d2b188",
+  },
+];

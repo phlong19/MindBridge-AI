@@ -59,27 +59,30 @@ export const configureAssistant = (
   return assistant;
 };
 
-// import fetch from 'node-fetch'; // for server use
-// import { jwtDecode } from 'jwt-decode';
-// const AUTH_TOKEN = 'Bearer TOKEN'; // put somewhere configurable, saved in db
-// // require to execute immediately to make sure the token still valid
+type Providers = "11labs" | "openai" | "playht" | "azure";
 
-// const PROVIDERS = ['11labs', 'openai', 'playht', 'azure'];
+export async function fetchVoicesAndSync(
+  provider: Providers,
+  token: string,
+): Promise<Voice[]> {
+  const res = await fetch(
+    `https://api.vapi.ai/voice-library/${provider}?limit=100`,
+    {
+      headers: {
+        Authorization: token,
+        "Content-Type": "application/json",
+      },
+    },
+  );
 
-// async function fetchVoices(provider: string, token: string) {
+  if (!res.ok) {
+    console.error(`Failed to fetch for ${provider}`);
+    return [];
+  }
 
-//   const res = await fetch(`https://api.vapi.ai/voice-library/${provider}?limit=100`, {
-//     headers: {
-//       Authorization: token,
-//       'Content-Type': 'application/json'
-//     }
-//   });
+  const data = await res.json();
 
-//   if (!res.ok) {
-//     console.error(`Failed to fetch for ${provider}:`, await res.text());
-//     return [];
-//   }
+  // sync to db
 
-//   const data = await res.json();
-//   return Array.isArray(data) ? data : [data];
-// }
+  return Array.isArray(data) ? data : [data];
+}

@@ -90,16 +90,17 @@ interface VoiceGroup {
 
 interface Voice {
   id: string;
-  provider: "11labs"; // support more later
+  provider: string;
   providerId: string; // future scaling
   slug: string;
   name: string;
-  gender: "male" | "female";
-  accent: string;
+  gender: string;
+  accent?: string;
   previewUrl: string;
   createdAt: string;
   updatedAt: string;
-  description: string;
+  description?: string;
   isPublic: boolean;
   isDeleted: boolean;
+  orgId?: string;
 }
