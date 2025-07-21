@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { subjectsColors } from "@/constants";
 import { CreateAssistantDTO } from "@vapi-ai/web/dist/api";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -13,7 +14,7 @@ export const getSubjectColor = (subject: string) => {
 export const configureAssistant = (
   voices: VoiceGroup,
   voice: string,
-  style: string,
+  // style: string,
 ) => {
   const assistant: CreateAssistantDTO = {
     name: "Companion",
@@ -58,31 +59,3 @@ export const configureAssistant = (
 
   return assistant;
 };
-
-type Providers = "11labs" | "openai" | "playht" | "azure";
-
-export async function fetchVoicesAndSync(
-  provider: Providers,
-  token: string,
-): Promise<Voice[]> {
-  const res = await fetch(
-    `https://api.vapi.ai/voice-library/${provider}?limit=100`,
-    {
-      headers: {
-        Authorization: token,
-        "Content-Type": "application/json",
-      },
-    },
-  );
-
-  if (!res.ok) {
-    console.error(`Failed to fetch for ${provider}`);
-    return [];
-  }
-
-  const data = await res.json();
-
-  // sync to db
-
-  return Array.isArray(data) ? data : [data];
-}

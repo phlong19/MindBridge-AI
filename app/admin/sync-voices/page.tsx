@@ -18,7 +18,7 @@ import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { error as errorMessage } from "@/constants/message";
-import { fetchVoicesAndSync } from "@/lib/utils";
+import { fetchVoicesAndSync } from "@/lib/services/companion";
 import { toast } from "sonner";
 import VoiceTable from "@/components/custom/VoiceTable";
 
@@ -38,10 +38,10 @@ export default function Page() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const voices = await fetchVoicesAndSync("11labs", "Bearer " + values.key);
 
-    if (voices.length) {
+    if (voices.length && Array.isArray(voices)) {
       setVoiceData(voices);
-    } else {
-      toast.error(errorMessage.resourceNotFound);
+    } else if (!Array.isArray(voices)) {
+      toast.error(voices.error, { description: voices.errorDescription });
     }
   }
 

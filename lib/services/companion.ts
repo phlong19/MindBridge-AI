@@ -12,7 +12,7 @@ export async function createCompanion(formData: CreateCompanion) {
 
   const { data, error } = await supabase
     .from("companions")
-    .insert({ ...formData, author })
+    .insert({ ...formData, author, voiceId: "" })
     .select();
 
   if (error && !data) {
@@ -83,3 +83,66 @@ export async function getCompanion(id: string) {
 
   return { companion: data[0] };
 }
+//#endregion
+
+//#region sync voices
+type Providers = "11labs" | "openai" | "playht" | "azure";
+
+export async function fetchVoicesAndSync(
+  provider: Providers,
+  token: string,
+): Promise<Voice[] | Record<string, string>> {
+  const res = await fetch(
+    `https://api.vapi.ai/voice-library/${provider}?limit=100`,
+    {
+      headers: {
+        Authorization: token,
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    return { error: errorMessage.fetchFail, errorDescription: text };
+  }
+
+  let data;
+
+  try {
+    data = await res.json();
+  } catch (error) {
+    let message = "Unknown error";
+
+    if (error instanceof Error) {
+      message = error.message;
+    } else if (typeof error === "string") {
+      message = error;
+    }
+
+    return {
+      error: errorMessage.fetchFail,
+      errorDescription: message,
+    };
+  }
+
+  // validate data type
+
+  // sync to db
+  if (data && Array.isArray(data)) {
+    const supabase = createSupabaseClient();
+    const { error } = await supabase
+      .from("voices")
+      .upsert(data, { onConflict: "id" });
+
+    if (error) {
+      return {
+        error: errorMessage.insertFail,
+        errorDescription: error.message,
+      };
+    }
+  }
+
+  return Array.isArray(data) ? data : [data];
+}
+//#endregion

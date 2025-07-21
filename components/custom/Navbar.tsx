@@ -13,10 +13,8 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
-  {
-    href: "/",
-    label: "Home",
-  },
+  { href: "/admin", label: "Manage" },
+  { href: "/", label: "Home" },
   { label: "Companions", href: "/companions" },
   { label: "Subscription", href: "/subscription" },
 ];
@@ -44,7 +42,11 @@ const Navbar = () => {
             <Link
               key={label}
               href={href}
-              className={cn(path === href && "text-primary font-semibold")}
+              className={cn(
+                (path === href ||
+                  (href !== "/" && path.startsWith(href + "/"))) &&
+                  "text-primary font-semibold",
+              )}
             >
               {label}
             </Link>
