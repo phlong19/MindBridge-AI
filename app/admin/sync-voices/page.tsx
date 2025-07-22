@@ -18,7 +18,7 @@ import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { error as errorMessage } from "@/constants/message";
-import { fetchVoicesAndSync } from "@/lib/services/companion";
+import { fetchVoicesAndSync } from "@/lib/services/voices";
 import { toast } from "sonner";
 import VoiceTable from "@/components/custom/VoiceTable";
 import { Voice } from "@/types";

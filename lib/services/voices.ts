@@ -67,9 +67,7 @@ export async function fetchVoicesAndSync(
 //#endregion
 
 //#region get voices list
-export async function getVoicesList(): Promise<
-  { data: Voice[] } | { error: string; errorDescription: string }
-> {
+export async function getVoicesList() {
   const supabase = createSupabaseClient();
 
   const { data, error } = await supabase
