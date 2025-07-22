@@ -12,11 +12,22 @@ import {
 } from "@/components/ui/Table";
 import {
   ColumnDef,
+  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
+  SortingState,
   useReactTable,
+  VisibilityState,
 } from "@tanstack/react-table";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
 import {
   Select,
   SelectContent,
@@ -36,28 +47,47 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Columns3Cog,
   Pause,
   Play,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { fakeVoices } from "@/constants";
+// import { fakeVoices } from "@/constants";
+import ChevronUpDown from "./SortingChevrons";
+import { Input } from "../ui/Input";
+import { Voice } from "@/types";
 
 interface Props {
   data: Voice[];
 }
 
-function VoiceTable({ dat }: Props) {
-  const [data] = useState(fakeVoices);
+function VoiceTable({ data }: Props) {
+  const [nameFilter, setNameFilter] = useState("");
   const [currentPlayingUrl, setCurrentPlayingUrl] = useState<string | null>(
     null,
   );
+  const [sorting, setSorting] = useState<SortingState>([
+    { desc: false, id: "name" },
+  ]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const columns: ColumnDef<Voice>[] = useMemo(
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: ({ column }) => (
+          <Button
+            className="!px-0"
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Name
+            <ChevronUpDown sorting={column.getIsSorted()} />
+          </Button>
+        ),
         cell: ({ getValue }) => (
           <div className="w-36 font-medium">{getValue() as string}</div>
         ),
@@ -158,17 +188,99 @@ function VoiceTable({ dat }: Props) {
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+    },
   });
+
+  const totalLength = data.length;
+
+  function updateNameFilter(query?: string) {
+    const value = query ?? "";
+    setNameFilter(value);
+    table.getColumn("name")?.setFilterValue(value);
+  }
 
   return (
     <div>
       <TypographyH3>Available voices</TypographyH3>
-      <TypographyP className="text-muted-foreground !my-3">
-        Last updated at{" "}
-        {dayjs(data[0]?.createdAt).format(
-          "dddd, MMM DD YYYY - HH:mm:ss A UTCZ",
-        )}
-      </TypographyP>
+      {/* synced to db */}
+      <div className="flex w-full flex-col items-center justify-between max-lg:items-start lg:flex-row">
+        <TypographyP className="text-muted-foreground !my-3">
+          Last updated at{" "}
+          {dayjs(data[0]?.createdAt).format(
+            "dddd, MMM DD YYYY - HH:mm:ss A UTCZ",
+          )}
+        </TypographyP>
+        <div className="flex w-full items-center gap-3 lg:max-w-md">
+          {/* filter */}
+          <div className="relative grow py-4">
+            <Input
+              placeholder="Filter by name..."
+              value={nameFilter}
+              onChange={(e) => updateNameFilter(e.target.value)}
+            />
+            {nameFilter.length ? (
+              <Tooltip>
+                <TooltipTrigger className="absolute top-1/2 right-0 -translate-y-1/2 rounded-l-[0]">
+                  <Button variant="ghost" onClick={() => updateNameFilter()}>
+                    <X />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Clear</TooltipContent>
+              </Tooltip>
+            ) : (
+              ""
+            )}
+          </div>
+          {/* columns visibility */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="focus-visible:border-inherit focus-visible:ring-0"
+              >
+                <Columns3Cog
+                  stroke={
+                    Object.values(table.getState().columnVisibility).some(
+                      (i) => !i,
+                    )
+                      ? "var(--primary)"
+                      : "currentColor"
+                  }
+                />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -202,10 +314,9 @@ function VoiceTable({ dat }: Props) {
             ))
           ) : (
             <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="h-24 text-center"
-              ></TableCell>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
             </TableRow>
           )}
         </TableBody>
@@ -214,7 +325,7 @@ function VoiceTable({ dat }: Props) {
             <TableCell colSpan={5}>
               <div className="flex flex-col items-center justify-between px-2 max-md:gap-3 max-md:p-0 max-sm:items-start md:flex-row">
                 <div className="text-muted-foreground flex-1 text-sm max-sm:self-start">
-                  Total {table.getRowCount()} items. Filter return{" "}
+                  Total {totalLength} items. Showing{" "}
                   {table.getFilteredRowModel().rows.length} result(s).
                 </div>
                 <div className="flex items-center space-x-6 lg:space-x-8">

@@ -1,3 +1,5 @@
+import { Voice } from "@/types";
+
 export const subjects = [
   "maths",
   "language",

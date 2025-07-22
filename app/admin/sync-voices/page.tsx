@@ -21,6 +21,7 @@ import { error as errorMessage } from "@/constants/message";
 import { fetchVoicesAndSync } from "@/lib/services/companion";
 import { toast } from "sonner";
 import VoiceTable from "@/components/custom/VoiceTable";
+import { Voice } from "@/types";
 
 const formSchema = z.object({
   key: z.coerce.string().min(1, { message: "Invalid key." }),
@@ -77,7 +78,7 @@ export default function Page() {
 
   return (
     <div className="w-full p-5 md:p-10">
-      <Button onClick={() => router.back()} variant="link">
+      <Button className="!px-0" onClick={() => router.back()} variant="link">
         <ArrowLeft />
         Go back
       </Button>

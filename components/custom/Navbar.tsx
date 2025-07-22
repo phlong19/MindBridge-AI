@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/Drawer";
 import {
   AlignRight,
+  AudioLines,
   CircleDollarSign,
   FolderKanban,
   Handshake,
@@ -34,6 +35,7 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { href: "/admin", label: "Manage", icon: <FolderKanban size="20" /> },
   { href: "/", label: "Home", icon: <House size="20" /> },
+  { href: "/voices", label: "Voices Library", icon: <AudioLines size="20" /> },
   { label: "Companions", href: "/companions", icon: <Handshake size="20" /> },
   {
     label: "Subscription",
@@ -61,7 +63,7 @@ const Navbar = () => {
             />
           </div>
         </Link>
-        <div className="hidden items-center gap-8 lg:flex">
+        <div className="text-foreground hidden items-center gap-8 lg:flex">
           <nav className="flex items-center gap-4">
             {navLinks.map(({ label, href }) => (
               <Link

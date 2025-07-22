@@ -5,6 +5,8 @@
 //   accountId: string;
 // };
 
+import { Database } from "./supabase";
+
 enum Subject {
   maths = "maths",
   language = "language",
@@ -73,14 +75,14 @@ interface SavedMessage {
 }
 
 interface CompanionComponentProps {
-  companionId: string;
-  subject: string;
-  topic: string;
-  name: string;
-  userName: string;
-  userImage: string;
-  voice: string;
-  style: string;
+  companionId: string | null;
+  subject: string | null;
+  topic: string | null;
+  name: string | null;
+  userName: string | null;
+  userImage: string | null;
+  voiceId: string | null;
+  style: boolean | null;
 }
 
 interface VoiceGroup {
@@ -88,19 +90,6 @@ interface VoiceGroup {
   female: Voice[];
 }
 
-interface Voice {
-  id: string;
-  provider: string;
-  providerId: string; // future scaling
-  slug: string;
-  name: string;
-  gender: string;
-  accent?: string;
-  previewUrl: string;
-  createdAt: string;
-  updatedAt: string;
-  description?: string;
-  isPublic: boolean;
-  isDeleted: boolean;
-  orgId?: string;
-}
+type VoiceRow = Database["public"]["Tables"]["voices"]["Row"];
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface Voice extends VoiceRow {}

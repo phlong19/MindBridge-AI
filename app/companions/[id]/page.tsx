@@ -28,14 +28,14 @@ const Page = async ({ params }: Props) => {
         <div className="flex items-center justify-start gap-2">
           <div
             className="flex size-[72px] items-center justify-center rounded-lg max-md:hidden"
-            style={{ backgroundColor: getSubjectColor(companion.subject) }}
+            style={{ backgroundColor: getSubjectColor(companion.subject!) }}
           >
             <Image
               width={0}
               height={0}
               style={{ width: 35, height: 35 }}
               src={`/icons/${companion.subject}.svg`}
-              alt={companion.subject}
+              alt={companion.subject!}
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -55,6 +55,7 @@ const Page = async ({ params }: Props) => {
       </article>
       <CompanionInterlink
         {...companion}
+        style={companion.style!}
         companionId={id}
         userImage={user.imageUrl}
         userName={user.firstName ?? user.username!}

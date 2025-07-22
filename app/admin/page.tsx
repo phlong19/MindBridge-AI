@@ -12,26 +12,35 @@ import {
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
+const pages: { title: string; desc: string; content: string }[] = [
+  {
+    title: "Sync Voices",
+    desc: "/admin/sync-voices",
+    content: "Update voices from 11labs, data collected from Vapi API",
+  },
+  // scalable
+];
+
 export default function Page() {
   return (
-    <div className="w-full p-5 md:p-10">
-      <Link href="/admin/sync-voices">
-        <Card className="group max-w-lg">
-          <CardHeader>
-            <CardTitle>Sync Voices</CardTitle>
-            <CardDescription>/admin/sync-voices</CardDescription>
-          </CardHeader>
-          <CardContent>
-            Update voices from 11labs, data collected from Vapi API
-          </CardContent>
-          <CardFooter>
-            <Button variant="link">
-              View{" "}
-              <ArrowRight className="transition-transform duration-200 group-hover:translate-x-2" />
-            </Button>
-          </CardFooter>
-        </Card>
-      </Link>
+    <div className="grid w-full p-5 md:p-10">
+      {pages.map(({ content, desc, title }) => (
+        <Link href={desc} key={title}>
+          <Card className="group max-w-lg">
+            <CardHeader>
+              <CardTitle>{title}</CardTitle>
+              <CardDescription>{desc}</CardDescription>
+            </CardHeader>
+            <CardContent>{content}</CardContent>
+            <CardFooter>
+              <Button variant="link">
+                View{" "}
+                <ArrowRight className="transition-transform duration-200 group-hover:translate-x-2" />
+              </Button>
+            </CardFooter>
+          </Card>
+        </Link>
+      ))}
     </div>
   );
 }

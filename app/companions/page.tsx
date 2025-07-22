@@ -16,6 +16,7 @@ import { getSubjectColor } from "@/lib/utils";
 import { TypographyH4 } from "@/components/ui/Typography";
 import SubjectFilter from "@/components/custom/SubjectFilter";
 import { error as errorMessage } from "@/constants/message";
+import { SearchParams } from "@/types";
 
 const Page = async ({ searchParams }: SearchParams) => {
   const { userId } = await auth();

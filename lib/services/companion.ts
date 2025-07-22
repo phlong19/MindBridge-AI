@@ -3,6 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { createSupabaseClient } from "../supabase";
 import { error as errorMessage } from "@/constants/message";
+import { CreateCompanion, GetAllCompanions, Voice } from "@/types";
 
 //#region create
 export async function createCompanion(formData: CreateCompanion) {
@@ -83,7 +84,6 @@ export async function getCompanion(id: string) {
 
   return { companion: data[0] };
 }
-//#endregion
 
 //#region sync voices
 type Providers = "11labs" | "openai" | "playht" | "azure";
