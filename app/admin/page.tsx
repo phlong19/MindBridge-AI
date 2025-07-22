@@ -14,7 +14,7 @@ import Link from "next/link";
 
 export default function Page() {
   return (
-    <div className="w-full p-10">
+    <div className="w-full p-5 md:p-10">
       <Link href="/admin/sync-voices">
         <Card className="group max-w-lg">
           <CardHeader>
