@@ -1,4 +1,4 @@
-// this svg come from lucide icon - ChevronsUpdown
+// this svg come from tabler icon - CaretUpdown
 
 import { SortDirection } from "@tanstack/react-table";
 import React from "react";
