@@ -1,7 +1,13 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  UserButton,
+  useUser,
+} from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -24,16 +30,23 @@ import {
   House,
   X,
 } from "lucide-react";
-import { JSX, useState } from "react";
+import { JSX, useEffect, useState } from "react";
+import Loading from "./Loading";
 
 interface NavLink {
   label: string;
   href: string;
   icon: JSX.Element;
+  admin?: boolean;
 }
 
 const navLinks: NavLink[] = [
-  { href: "/admin", label: "Manage", icon: <FolderKanban size="20" /> },
+  {
+    href: "/admin",
+    label: "Manage",
+    icon: <FolderKanban size="20" />,
+    admin: true,
+  },
   { href: "/", label: "Home", icon: <House size="20" /> },
   { href: "/voices", label: "Voices Library", icon: <AudioLines size="20" /> },
   { label: "Companions", href: "/companions", icon: <Handshake size="20" /> },
@@ -47,6 +60,16 @@ const navLinks: NavLink[] = [
 const Navbar = () => {
   const path = usePathname();
   const [open, setOpen] = useState(false);
+  const { user, isLoaded } = useUser();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isLoaded || !isClient) {
+    return <Loading full />;
+  }
 
   return (
     <>
@@ -65,19 +88,23 @@ const Navbar = () => {
         </Link>
         <div className="text-foreground hidden items-center gap-8 lg:flex">
           <nav className="flex items-center gap-4">
-            {navLinks.map(({ label, href }) => (
-              <Link
-                key={label}
-                href={href}
-                className={cn(
-                  (path === href ||
-                    (href !== "/" && path.startsWith(href + "/"))) &&
-                    "text-primary font-semibold",
-                )}
-              >
-                {label}
-              </Link>
-            ))}
+            {navLinks.map(({ label, href, admin }) => {
+              const className = cn(
+                (path === href ||
+                  (href !== "/" && path.startsWith(href + "/"))) &&
+                  "text-primary font-semibold",
+              );
+
+              if ((admin && !user) || user?.id !== process.env.ADMIN_USER_ID) {
+                return null;
+              }
+
+              return (
+                <Link key={label} href={href} className={className}>
+                  {label}
+                </Link>
+              );
+            })}
           </nav>
           <SignedOut>
             <SignInButton>
