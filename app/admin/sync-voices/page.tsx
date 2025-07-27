@@ -22,6 +22,7 @@ import { fetchVoicesAndSync } from "@/lib/services/voices";
 import { toast } from "sonner";
 import VoiceTable from "@/components/custom/VoiceTable";
 import { Voice } from "@/types";
+import { getToastStyle } from "@/lib/utils";
 
 const formSchema = z.object({
   key: z.coerce.string().min(1, { message: "Invalid key." }),
@@ -42,7 +43,10 @@ export default function Page() {
     if (voices.length && Array.isArray(voices)) {
       setVoiceData(voices);
     } else if (!Array.isArray(voices)) {
-      toast.error(voices.error, { description: voices.errorDescription });
+      toast.error(voices.error, {
+        ...getToastStyle("error"),
+        description: voices.errorDescription,
+      });
     }
   }
 

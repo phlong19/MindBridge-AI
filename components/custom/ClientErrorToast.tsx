@@ -1,5 +1,6 @@
 "use client";
 
+import { getToastStyle } from "@/lib/utils";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
@@ -12,7 +13,10 @@ const ClientErrorToast = ({
 }) => {
   useEffect(() => {
     if (error) {
-      toast.error(error, { description: errorDescription });
+      toast.error(error, {
+        ...getToastStyle("error"),
+        description: errorDescription,
+      });
     }
   }, [error, errorDescription]);
 

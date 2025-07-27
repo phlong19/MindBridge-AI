@@ -5,6 +5,7 @@ import { SignIn, useAuth } from "@clerk/nextjs";
 import React, { useEffect } from "react";
 import { toast } from "sonner";
 import { error as errorMessage } from "@/constants/message";
+import { getToastStyle } from "@/lib/utils";
 
 const Page = () => {
   const { isLoaded } = useAuth();
@@ -13,7 +14,7 @@ const Page = () => {
     const showToast = document.cookie.includes("authorization=1");
 
     if (showToast) {
-      toast.error(errorMessage.notAuthorized);
+      toast.error(errorMessage.notAuthorized, getToastStyle("warning"));
       document.cookie = "Max-Age=0; Path=/";
     }
   }, []);

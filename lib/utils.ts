@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { subjectsColors } from "@/constants";
 import { CreateAssistantDTO } from "@vapi-ai/web/dist/api";
+import { ToasterProps } from "sonner";
 // import { VoiceGroup } from "@/types";
 
 export function cn(...inputs: ClassValue[]) {
@@ -61,3 +62,32 @@ export const configureAssistant = (
 
   return assistant;
 };
+
+type ToastTypes =
+  | "normal"
+  | "action"
+  | "success"
+  | "info"
+  | "warning"
+  | "error"
+  | "loading"
+  | "default";
+
+export function getToastStyle(type: ToastTypes): ToasterProps["toastOptions"] {
+  const baseStyle = "!text-white !shadow-md";
+
+  const styles: Record<ToastTypes, string> = {
+    success: `!bg-green-600 ${baseStyle}`,
+    info: `!bg-blue-500 ${baseStyle}`,
+    warning: `!bg-yellow-400 !text-black !shadow-md`,
+    error: `!bg-red-600 ${baseStyle}`,
+    loading: `!bg-gray-600 ${baseStyle}`,
+    action: `!bg-purple-500 ${baseStyle}`,
+    default: `!bg-blue-600 ${baseStyle}`,
+    normal: `bg-gray-200 text-black shadow-sm`,
+  };
+
+  return {
+    className: styles[type] || styles.normal,
+  };
+}
