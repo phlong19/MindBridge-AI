@@ -7,6 +7,7 @@ import { useState } from "react";
 
 type Props = Database["public"]["Tables"]["companions"]["Row"] & {
   color: string;
+  slug?: string;
 };
 
 const CompanionCard = ({

@@ -3,8 +3,14 @@ import CompanionCard from "@/components/custom/CompanionCard";
 import CompanionsList from "@/components/custom/CompanionsList";
 import CTA from "@/components/custom/CTA";
 import { recentSessions } from "@/constants";
+import { Database } from "@/types/supabase";
 
-const data = [
+type Companion = Database["public"]["Tables"]["companions"]["Row"] & {
+  slug?: string;
+  color: string;
+};
+
+const data: Companion[] = [
   {
     id: "1a7f2c90",
     name: "Intro to AI Ethics",
@@ -13,6 +19,11 @@ const data = [
     subject: "Ethics",
     duration: 30,
     color: "#3B82F6",
+    created_at: "",
+    author: "",
+    gender: false,
+    style: true,
+    voiceId: "",
   },
   {
     id: "5c2e9df1",
@@ -22,6 +33,11 @@ const data = [
     subject: "Spanish",
     duration: 45,
     color: "#10B981",
+    created_at: "",
+    author: "",
+    gender: false,
+    style: true,
+    voiceId: "",
   },
   {
     id: "e832a9bd",
@@ -31,6 +47,11 @@ const data = [
     subject: "JavaScript",
     duration: 40,
     color: "#F59E0B",
+    created_at: "",
+    author: "",
+    gender: false,
+    style: true,
+    voiceId: "",
   },
   {
     id: "6f3a9c28",
@@ -40,6 +61,11 @@ const data = [
     subject: "Environmental Studies",
     duration: 35,
     color: "#EF4444",
+    created_at: "",
+    author: "",
+    gender: false,
+    style: true,
+    voiceId: "",
   },
   {
     id: "b72d41fa",
@@ -49,6 +75,11 @@ const data = [
     subject: "Entrepreneurship",
     duration: 50,
     color: "#8B5CF6",
+    created_at: "",
+    author: "",
+    gender: false,
+    style: true,
+    voiceId: "",
   },
 ];
 

@@ -1,10 +1,11 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, getToastStyle } from "@/lib/utils";
 import {
   SignedIn,
   SignedOut,
   SignInButton,
+  SignUpButton,
   UserButton,
   useUser,
 } from "@clerk/nextjs";
@@ -32,6 +33,8 @@ import {
 } from "lucide-react";
 import { JSX, useEffect, useState } from "react";
 import Loading from "./Loading";
+import { toast } from "sonner";
+import { error as errorMessage } from "@/constants/message";
 
 interface NavLink {
   label: string;
@@ -62,13 +65,62 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { user, isLoaded } = useUser();
   const [isClient, setIsClient] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+
+    async function checkIsAdmin() {
+      if (user?.id) {
+        try {
+          const res = await fetch("/api/check-admin", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userId: user.id }),
+          });
+
+          const data: { isAdmin: boolean } = await res.json();
+          setIsAdmin(data.isAdmin);
+        } catch (error) {
+          console.log(error);
+          toast.error(errorMessage.unknownError, getToastStyle("error"));
+        }
+      }
+    }
+
+    checkIsAdmin();
+  }, [user?.id]);
 
   if (!isLoaded || !isClient) {
     return <Loading full />;
+  }
+
+  function renderNavLinks(isDrawer = false) {
+    return navLinks.map(({ href, icon, label, admin }) => {
+      const className = cn(
+        isDrawer ? "my-3 flex items-center gap-2 text-base" : "",
+        (path === href || (href !== "/" && path.startsWith(href + "/"))) &&
+          "text-primary font-semibold",
+      );
+
+      if ((!user && admin) || (user && admin && !isAdmin)) {
+        return null;
+      }
+
+      return (
+        <Link
+          key={label}
+          href={href}
+          className={className}
+          onClick={isDrawer ? () => setOpen(false) : undefined}
+        >
+          {isDrawer ? icon : ""}
+          {label}
+        </Link>
+      );
+    });
   }
 
   return (
@@ -87,25 +139,7 @@ const Navbar = () => {
           </div>
         </Link>
         <div className="text-foreground hidden items-center gap-8 lg:flex">
-          <nav className="flex items-center gap-4">
-            {navLinks.map(({ label, href, admin }) => {
-              const className = cn(
-                (path === href ||
-                  (href !== "/" && path.startsWith(href + "/"))) &&
-                  "text-primary font-semibold",
-              );
-
-              if ((admin && !user) || user?.id !== process.env.ADMIN_USER_ID) {
-                return null;
-              }
-
-              return (
-                <Link key={label} href={href} className={className}>
-                  {label}
-                </Link>
-              );
-            })}
-          </nav>
+          <nav className="flex items-center gap-4">{renderNavLinks()}</nav>
           <SignedOut>
             <SignInButton>
               <button type="button" className="btn-login">
@@ -124,7 +158,7 @@ const Navbar = () => {
         </div>
         <div className="block lg:hidden">
           <Drawer direction="right" open={open} onOpenChange={setOpen}>
-            <DrawerTrigger className="flex w-full justify-end">
+            <DrawerTrigger className="flex w-full cursor-pointer justify-end">
               <AlignRight />
             </DrawerTrigger>
             <DrawerContent>
@@ -142,22 +176,32 @@ const Navbar = () => {
               </DrawerHeader>
 
               <DrawerBody className="flex flex-col">
-                {navLinks.map(({ label, href, icon }) => (
-                  <Link
-                    onClick={() => setOpen(false)}
-                    key={label}
-                    href={href}
-                    className={cn(
-                      "my-3 flex items-center gap-2 text-base",
-                      (path === href ||
-                        (href !== "/" && path.startsWith(href + "/"))) &&
-                        "text-primary font-semibold",
-                    )}
-                  >
-                    {icon}
-                    {label}
-                  </Link>
-                ))}
+                <div className="flex flex-row items-center gap-2 pb-3">
+                  <SignedOut>
+                    <SignInButton>
+                      <button
+                        onClick={() => setOpen(false)}
+                        type="button"
+                        className="btn-login w-fit max-md:py-1.5"
+                      >
+                        Login
+                      </button>
+                    </SignInButton>
+                    <SignUpButton>
+                      <button
+                        onClick={() => setOpen(false)}
+                        type="button"
+                        className="btn-login border-transparent bg-[#6c47ff] text-white max-md:py-1.5"
+                      >
+                        Sign Up
+                      </button>
+                    </SignUpButton>
+                  </SignedOut>
+                  <SignedIn>
+                    <UserButton />
+                  </SignedIn>
+                </div>
+                {renderNavLinks(true)}
               </DrawerBody>
             </DrawerContent>
           </Drawer>
