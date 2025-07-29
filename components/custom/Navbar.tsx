@@ -5,6 +5,7 @@ import {
   SignedIn,
   SignedOut,
   SignInButton,
+  SignOutButton,
   SignUpButton,
   UserButton,
   useUser,
@@ -29,6 +30,7 @@ import {
   FolderKanban,
   Handshake,
   House,
+  UserRoundPlus,
   X,
 } from "lucide-react";
 import { JSX, useEffect, useState } from "react";
@@ -41,6 +43,7 @@ interface NavLink {
   href: string;
   icon: JSX.Element;
   admin?: boolean;
+  exact?: boolean;
 }
 
 const navLinks: NavLink[] = [
@@ -52,7 +55,17 @@ const navLinks: NavLink[] = [
   },
   { href: "/", label: "Home", icon: <House size="20" /> },
   { href: "/voices", label: "Voices Library", icon: <AudioLines size="20" /> },
-  { label: "Companions", href: "/companions", icon: <Handshake size="20" /> },
+  {
+    label: "Companions",
+    href: "/companions",
+    icon: <Handshake size="20" />,
+    exact: true,
+  },
+  {
+    label: "New Companions",
+    href: "/companions/new",
+    icon: <UserRoundPlus size="20" />,
+  },
   {
     label: "Subscription",
     href: "/subscription",
@@ -63,7 +76,7 @@ const navLinks: NavLink[] = [
 const Navbar = () => {
   const path = usePathname();
   const [open, setOpen] = useState(false);
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const [isClient, setIsClient] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -98,10 +111,11 @@ const Navbar = () => {
   }
 
   function renderNavLinks(isDrawer = false) {
-    return navLinks.map(({ href, icon, label, admin }) => {
+    return navLinks.map(({ href, icon, label, admin, exact }) => {
       const className = cn(
         isDrawer ? "my-3 flex items-center gap-2 text-base" : "",
-        (path === href || (href !== "/" && path.startsWith(href + "/"))) &&
+        (path === href ||
+          (href !== "/" && path.startsWith(href + "/") && !exact)) &&
           "text-primary font-semibold",
       );
 
@@ -157,7 +171,12 @@ const Navbar = () => {
           </SignedIn>
         </div>
         <div className="block lg:hidden">
-          <Drawer direction="right" open={open} onOpenChange={setOpen}>
+          <Drawer
+            direction="right"
+            modal={false}
+            open={open}
+            onOpenChange={setOpen}
+          >
             <DrawerTrigger className="flex w-full cursor-pointer justify-end">
               <AlignRight />
             </DrawerTrigger>
@@ -169,14 +188,19 @@ const Navbar = () => {
                     <DrawerDescription>Navigation panel</DrawerDescription>
                   </div>
 
-                  <DrawerClose>
+                  <DrawerClose className="cursor-pointer">
                     <X />
                   </DrawerClose>
                 </div>
               </DrawerHeader>
 
               <DrawerBody className="flex flex-col">
-                <div className="flex flex-row items-center gap-2 pb-3">
+                <div
+                  className={cn(
+                    "flex flex-row items-center gap-2 pb-3",
+                    isSignedIn ? "justify-between" : "",
+                  )}
+                >
                   <SignedOut>
                     <SignInButton>
                       <button
@@ -200,6 +224,16 @@ const Navbar = () => {
                   <SignedIn>
                     <UserButton />
                   </SignedIn>
+                  {isSignedIn && (
+                    <SignOutButton>
+                      <button
+                        type="button"
+                        className="btn-login max-lg:py-[3px]"
+                      >
+                        Logout
+                      </button>
+                    </SignOutButton>
+                  )}
                 </div>
                 {renderNavLinks(true)}
               </DrawerBody>

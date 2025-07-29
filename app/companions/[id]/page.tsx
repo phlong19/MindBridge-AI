@@ -1,11 +1,11 @@
+import { RedirectWithToast } from "@/components/custom/ClientErrorToast";
 import CompanionInterlink from "@/components/custom/CompanionInterlink";
 import { getCompanion } from "@/lib/services/companion";
 import { getSubjectColor } from "@/lib/utils";
 import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import React from "react";
-import { toast } from "sonner";
+import { error as errorMessage } from "@/constants/message";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -16,10 +16,16 @@ const Page = async ({ params }: Props) => {
   const { companion, error } = await getCompanion(id);
   const user = await currentUser();
 
-  if (!user) redirect("/auth/login");
+  if (!user) redirect(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!);
   if (!companion || error) {
-    toast(error);
-    return redirect("/companions");
+    return (
+      <RedirectWithToast
+        error={errorMessage.fetchFail}
+        errorDescription={error}
+        delay={300}
+        redirectTo="/companions"
+      />
+    );
   }
 
   return (

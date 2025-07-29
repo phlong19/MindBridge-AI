@@ -22,12 +22,17 @@ import {
   SelectValue,
 } from "../ui/Select";
 import { subjects } from "@/constants";
+import { error as errorMessage } from "@/constants/message";
 import { Textarea } from "../ui/Textarea";
 import { createCompanion } from "@/lib/services/companion";
 import { redirect } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Switch from "../ui/Switch";
+import { Voice, VoiceGroup } from "@/types";
+import { getToastStyle } from "@/lib/utils";
+import { getVoicesList } from "@/lib/services/voices";
+import FormSkeleton from "./FormSkeleton";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Please enter your companion's name" }),
@@ -41,6 +46,8 @@ const formSchema = z.object({
 
 const CompanionForm = () => {
   const [isOpen, setIsOpen] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [voices, setVoices] = useState<VoiceGroup>({ male: [], female: [] });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -55,6 +62,48 @@ const CompanionForm = () => {
     },
   });
 
+  function showFetchFailToast() {
+    return toast.error(errorMessage.fetchFail, getToastStyle("error"));
+  }
+
+  useEffect(() => {
+    async function getVoicesAndGroup() {
+      try {
+        setIsLoading(true);
+        const res = await getVoicesList();
+
+        if (res.data) {
+          const group = res.data.reduce(
+            (group: VoiceGroup, cur: Voice) => {
+              const key = cur.gender as keyof VoiceGroup;
+
+              if (key && !group[key]) {
+                group[key] = [];
+              }
+
+              group[key].push(cur);
+
+              return group;
+            },
+            { male: [], female: [] },
+          );
+
+          setVoices(group);
+        }
+
+        showFetchFailToast();
+      } catch (error) {
+        if (error instanceof Error) {
+          showFetchFailToast();
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    getVoicesAndGroup();
+  }, []);
+
   function onOpenSelect(name: string) {
     setIsOpen((prev) => (prev === name ? "" : name));
   }
@@ -66,8 +115,12 @@ const CompanionForm = () => {
       redirect(`/companions/${companion.id}`);
     } else {
       // show toast instead of redirect, which is bad UX
-      toast(error);
+      toast.error(error, getToastStyle("error"));
     }
+  }
+
+  if (isLoading) {
+    return <FormSkeleton />;
   }
 
   return (
@@ -184,11 +237,13 @@ const CompanionForm = () => {
                     <SelectValue placeholder="Select voice model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {subjects.map((subject) => (
-                      <SelectItem key={subject} value={subject}>
-                        {subject}
-                      </SelectItem>
-                    ))}
+                    {voices[form.getValues("gender") ? "male" : "female"].map(
+                      (subject) => (
+                        <SelectItem key={subject.id} value={subject.id}>
+                          {subject.name}
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </FormControl>
