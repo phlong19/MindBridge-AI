@@ -3,6 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { createSupabaseClient } from "../supabase";
 import { error as errorMessage } from "@/constants/message";
+import { CreateCompanion, GetAllCompanions } from "@/types";
 
 //#region create
 export async function createCompanion(formData: CreateCompanion) {
@@ -12,7 +13,7 @@ export async function createCompanion(formData: CreateCompanion) {
 
   const { data, error } = await supabase
     .from("companions")
-    .insert({ ...formData, author })
+    .insert({ ...formData, author, voiceId: "" })
     .select();
 
   if (error && !data) {

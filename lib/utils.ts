@@ -2,6 +2,9 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { subjectsColors } from "@/constants";
 import { CreateAssistantDTO } from "@vapi-ai/web/dist/api";
+import { ToasterProps } from "sonner";
+// import { VoiceGroup } from "@/types";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -11,10 +14,11 @@ export const getSubjectColor = (subject: string) => {
 };
 
 export const configureAssistant = (
-  voices: VoiceGroup,
+  // voices: VoiceGroup,
   voice: string,
-  style: string,
+  style: boolean | null,
 ) => {
+  console.log(style);
   const assistant: CreateAssistantDTO = {
     name: "Companion",
     firstMessage:
@@ -59,27 +63,31 @@ export const configureAssistant = (
   return assistant;
 };
 
-// import fetch from 'node-fetch'; // for server use
-// import { jwtDecode } from 'jwt-decode';
-// const AUTH_TOKEN = 'Bearer TOKEN'; // put somewhere configurable, saved in db
-// // require to execute immediately to make sure the token still valid
+type ToastTypes =
+  | "normal"
+  | "action"
+  | "success"
+  | "info"
+  | "warning"
+  | "error"
+  | "loading"
+  | "default";
 
-// const PROVIDERS = ['11labs', 'openai', 'playht', 'azure'];
+export function getToastStyle(type: ToastTypes): ToasterProps["toastOptions"] {
+  const baseStyle = "!text-white !shadow-md";
 
-// async function fetchVoices(provider: string, token: string) {
+  const styles: Record<ToastTypes, string> = {
+    success: `!bg-green-600 ${baseStyle}`,
+    info: `!bg-blue-500 ${baseStyle}`,
+    warning: `!bg-yellow-400 !text-black !shadow-md`,
+    error: `!bg-red-600 ${baseStyle}`,
+    loading: `!bg-gray-600 ${baseStyle}`,
+    action: `!bg-purple-500 ${baseStyle}`,
+    default: `!bg-blue-600 ${baseStyle}`,
+    normal: `bg-gray-200 text-black shadow-sm`,
+  };
 
-//   const res = await fetch(`https://api.vapi.ai/voice-library/${provider}?limit=100`, {
-//     headers: {
-//       Authorization: token,
-//       'Content-Type': 'application/json'
-//     }
-//   });
-
-//   if (!res.ok) {
-//     console.error(`Failed to fetch for ${provider}:`, await res.text());
-//     return [];
-//   }
-
-//   const data = await res.json();
-//   return Array.isArray(data) ? data : [data];
-// }
+  return {
+    className: styles[type] || styles.normal,
+  };
+}

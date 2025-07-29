@@ -18,6 +18,11 @@ import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { error as errorMessage } from "@/constants/message";
+import { fetchVoicesAndSync } from "@/lib/services/voices";
+import { toast } from "sonner";
+import VoiceTable from "@/components/custom/VoiceTable";
+import { Voice } from "@/types";
+import { getToastStyle } from "@/lib/utils";
 
 const formSchema = z.object({
   key: z.coerce.string().min(1, { message: "Invalid key." }),
@@ -25,15 +30,23 @@ const formSchema = z.object({
 
 export default function Page() {
   const [keyInformation, setKeyInformation] = useState<JwtPayload>({});
+  const [voiceData, setVoiceData] = useState<Voice[]>([]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { key: "" },
   });
   const router = useRouter();
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    if (form.formState.isValid) {
-      console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const voices = await fetchVoicesAndSync("11labs", "Bearer " + values.key);
+
+    if (voices.length && Array.isArray(voices)) {
+      setVoiceData(voices);
+    } else if (!Array.isArray(voices)) {
+      toast.error(voices.error, {
+        ...getToastStyle("error"),
+        description: voices.errorDescription,
+      });
     }
   }
 
@@ -68,14 +81,17 @@ export default function Page() {
   }
 
   return (
-    <div className="mx-auto max-w-md p-10 md:max-w-lg lg:max-w-2/3 xl:max-w-1/2">
-      <Button onClick={() => router.back()} variant="link">
+    <div className="w-full p-5 md:p-10">
+      <Button className="!px-0" onClick={() => router.back()} variant="link">
         <ArrowLeft />
         Go back
       </Button>
-      <div className="pt-5">
+      <div className="flex flex-col gap-5 pt-5">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form
+            className="mx-auto w-full md:w-lg lg:w-2/3 xl:w-1/2"
+            onSubmit={form.handleSubmit(onSubmit)}
+          >
             <FormField
               control={form.control}
               name="key"
@@ -89,7 +105,8 @@ export default function Page() {
                         const { value } = e.target;
                         if (value.length >= 1) {
                           validateKey(value);
-                        }
+                          field.onBlur();
+                        } else setKeyInformation({});
                       }}
                       placeholder="Paste your key here"
                       className="min-h-40"
@@ -120,6 +137,9 @@ export default function Page() {
             </div>
           </form>
         </Form>
+
+        {/* {voiceData.length > 0 && <VoiceTable data={voiceData} />} */}
+        {<VoiceTable data={voiceData} />}
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import Lottie, { LottieRefCurrentProps } from "lottie-react";
 import soundWaveAnimation from "@/constants/sound-voice.json";
 import { AssistantOverrides } from "@vapi-ai/web/dist/api";
+import { CompanionComponentProps } from "@/types";
 
 enum ECallStatus {
   INACTIVE = "INACTIVE",
@@ -36,10 +37,10 @@ type VapiEventNames =
 function CompanionInterlink({
   subject,
   name,
-  companionId,
+  // companionId,
   style,
   topic,
-  voice,
+  voiceId,
   userImage,
   userName,
 }: CompanionComponentProps) {
@@ -102,7 +103,7 @@ function CompanionInterlink({
     };
 
     const call = await vapi.start(
-      configureAssistant(voice, style),
+      configureAssistant(voiceId!, style),
       assistantOverrides,
     );
 
@@ -122,7 +123,7 @@ function CompanionInterlink({
         <div className="companion-section">
           <div
             className="companion-avatar"
-            style={{ backgroundColor: getSubjectColor(subject) }}
+            style={{ backgroundColor: getSubjectColor(subject!) }}
           >
             <div
               className={cn(
@@ -137,7 +138,7 @@ function CompanionInterlink({
             >
               <Image
                 src={`/icons/${subject}.svg`}
-                alt={subject}
+                alt={subject!}
                 width={150}
                 height={150}
                 className="max-sm:w-fit"
@@ -166,7 +167,7 @@ function CompanionInterlink({
           <div className="user-avatar">
             <Image
               priority
-              src={userImage}
+              src={userImage!}
               alt={userName || "user avatar"}
               height={130}
               width={130}

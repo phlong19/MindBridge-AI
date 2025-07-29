@@ -1,18 +1,14 @@
 "use client";
 
+import { Database } from "@/types/supabase";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-interface Props {
-  id: string;
-  name: string;
-  slug?: string;
-  topic: string;
-  subject: string;
-  duration: number;
+type Props = Database["public"]["Tables"]["companions"]["Row"] & {
   color: string;
-}
+  slug?: string;
+};
 
 const CompanionCard = ({
   color,

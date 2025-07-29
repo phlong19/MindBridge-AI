@@ -1,11 +1,29 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const env = process.env.NODE_ENV;
+const isProtectedRoute = createRouteMatcher(["/admin(.*)"]);
 
-export default env === "development"
-  ? () => NextResponse.next()
-  : clerkMiddleware();
+export default clerkMiddleware(async (auth, req) => {
+  const { userId } = await auth();
+
+  if (
+    (!userId || userId !== process.env.ADMIN_USER_ID) &&
+    isProtectedRoute(req)
+  ) {
+    const response = NextResponse.redirect(
+      new URL(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!, req.url),
+    );
+
+    response.headers.append(
+      "Set-Cookie",
+      `authorization=1; Path=/; Max-Age=10; SameSite=Lax`,
+    );
+
+    return response;
+  }
+
+  return NextResponse.next();
+});
 
 export const config = {
   matcher: [

@@ -53,3 +53,18 @@ export function TypographyInlineCode({
     </code>
   );
 }
+
+export function TypographyP({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p
+      {...props}
+      className={cn("leading-7 [&:not(:first-child)]:mt-6", className)}
+    >
+      {children}
+    </p>
+  );
+}

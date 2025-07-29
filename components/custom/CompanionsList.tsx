@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import SubjectIcon from "./SubjectIcon";
 import Image from "next/image";
+import { Companion } from "@/types";
 
 const CompanionsList = ({
   title,
