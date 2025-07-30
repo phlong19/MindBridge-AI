@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { error as errorMessage } from "@/constants/message";
+import { error as errorMessage, successMessage } from "@/constants/message";
 import { fetchVoicesAndSync } from "@/lib/services/voices";
 import { toast } from "sonner";
 import VoiceTable from "@/components/custom/VoiceTable";
@@ -42,6 +42,7 @@ export default function Page() {
 
     if (voices.length && Array.isArray(voices)) {
       setVoiceData(voices);
+      toast.success(successMessage.syncComplete, getToastStyle("success"));
     } else if (!Array.isArray(voices)) {
       toast.error(voices.error, {
         ...getToastStyle("error"),

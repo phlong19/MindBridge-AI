@@ -62,6 +62,9 @@ const CompanionForm = () => {
     },
   });
 
+  const currentGender = form.getValues("gender") ? "male" : "female";
+  const currentStyle = form.getValues("style") ? "formal" : "casual";
+
   function showFetchFailToast() {
     return toast.error(errorMessage.fetchFail, getToastStyle("error"));
   }
@@ -90,8 +93,6 @@ const CompanionForm = () => {
 
           setVoices(group);
         }
-
-        showFetchFailToast();
       } catch (error) {
         if (error instanceof Error) {
           showFetchFailToast();
@@ -213,7 +214,11 @@ const CompanionForm = () => {
                   leftLabel="Casual"
                   rightLabel="Formal"
                   checked={field.value}
-                  onCheckedChange={field.onChange}
+                  onCheckedChange={(val) => {
+                    field.onChange(val);
+                    // TODO
+                    form.resetField("voiceId");
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -237,16 +242,17 @@ const CompanionForm = () => {
                     <SelectValue placeholder="Select voice model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {voices[form.getValues("gender") ? "male" : "female"].map(
-                      (subject) => (
+                    {voices[currentGender]
+                      .filter((voice) => voice.style !== currentStyle)
+                      .map((subject) => (
                         <SelectItem key={subject.id} value={subject.id}>
                           {subject.name}
                         </SelectItem>
-                      ),
-                    )}
+                      ))}
                   </SelectContent>
                 </Select>
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />

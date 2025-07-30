@@ -125,12 +125,13 @@ export type Database = {
           isDeleted: boolean | null;
           isPublic: boolean | null;
           name: string | null;
+          orgId: string | null;
           previewUrl: string | null;
           provider: string | null;
           providerId: string;
           slug: string | null;
+          style: string | null;
           updatedAt: string | null;
-          orgId: string | null;
         };
         Insert: {
           accent?: string | null;
@@ -141,12 +142,13 @@ export type Database = {
           isDeleted?: boolean | null;
           isPublic?: boolean | null;
           name?: string | null;
+          orgId?: string | null;
           previewUrl?: string | null;
           provider?: string | null;
           providerId: string;
           slug?: string | null;
+          style?: string | null;
           updatedAt?: string | null;
-          orgId?: string | null;
         };
         Update: {
           accent?: string | null;
@@ -157,12 +159,13 @@ export type Database = {
           isDeleted?: boolean | null;
           isPublic?: boolean | null;
           name?: string | null;
+          orgId?: string | null;
           previewUrl?: string | null;
           provider?: string | null;
           providerId?: string;
           slug?: string | null;
+          style?: string | null;
           updatedAt?: string | null;
-          orgId?: string | null;
         };
         Relationships: [];
       };

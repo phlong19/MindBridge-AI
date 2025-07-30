@@ -27,3 +27,7 @@ export const error = {
     "A required parameter is missing. Please check your request and try again.",
   unknownError: "An unknown error occurred. Please try again later.",
 };
+
+export const successMessage = {
+  syncComplete: "A syncing process was done successfully!",
+};
