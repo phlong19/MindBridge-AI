@@ -1,4 +1,6 @@
-import { Voice } from "@/types";
+import { Voice, Plans } from "@/types";
+
+export const plans: Plans[] = ["starter", "pro", "ultimate"];
 
 export const subjects = [
   "maths",
@@ -97,6 +99,7 @@ export const fakeVoices: Voice[] = [
     isPublic: true,
     isDeleted: false,
     orgId: "aa4c36ba-db21-4ce0-9c6e-bb55a8d2b188",
+    style: "casual",
   },
   {
     id: "f794a0d7-b5b8-4afd-845e-ecfffc113b85",
@@ -114,6 +117,7 @@ export const fakeVoices: Voice[] = [
     isPublic: false,
     isDeleted: false,
     orgId: "aa4c36ba-db21-4ce0-9c6e-bb55a8d2b188",
+    style: "formal",
   },
   {
     id: "44e6d34b-ead5-4a6f-a144-833834fa0c09",
@@ -132,5 +136,6 @@ export const fakeVoices: Voice[] = [
     isPublic: false,
     isDeleted: false,
     orgId: "aa4c36ba-db21-4ce0-9c6e-bb55a8d2b188",
+    style: "formal",
   },
 ];

@@ -24,6 +24,7 @@ const data: Companion[] = [
     gender: false,
     style: true,
     voiceId: "",
+    photoUrl: "",
   },
   {
     id: "5c2e9df1",
@@ -38,6 +39,7 @@ const data: Companion[] = [
     gender: false,
     style: true,
     voiceId: "",
+    photoUrl: "",
   },
   {
     id: "e832a9bd",
@@ -52,6 +54,7 @@ const data: Companion[] = [
     gender: false,
     style: true,
     voiceId: "",
+    photoUrl: "",
   },
   {
     id: "6f3a9c28",
@@ -66,6 +69,7 @@ const data: Companion[] = [
     gender: false,
     style: true,
     voiceId: "",
+    photoUrl: "",
   },
   {
     id: "b72d41fa",
@@ -80,6 +84,7 @@ const data: Companion[] = [
     gender: false,
     style: true,
     voiceId: "",
+    photoUrl: "",
   },
 ];
 

@@ -43,6 +43,7 @@ function CompanionInterlink({
   voiceId,
   userImage,
   userName,
+  photoUrl,
 }: CompanionComponentProps) {
   const lottieRef = useRef<LottieRefCurrentProps>(null);
   const [callStatus, setCallStatus] = useState<ECallStatus>(
@@ -103,7 +104,7 @@ function CompanionInterlink({
     };
 
     const call = await vapi.start(
-      configureAssistant(voiceId!, style),
+      configureAssistant(voiceId!),
       assistantOverrides,
     );
 
@@ -123,11 +124,13 @@ function CompanionInterlink({
         <div className="companion-section">
           <div
             className="companion-avatar"
-            style={{ backgroundColor: getSubjectColor(subject!) }}
+            style={
+              photoUrl ? {} : { backgroundColor: getSubjectColor(subject!) }
+            }
           >
             <div
               className={cn(
-                "absolute transition-opacity duration-100",
+                "absolute z-[2] transition-opacity duration-100",
                 callStatus === ECallStatus.FINISHED ||
                   callStatus === ECallStatus.INACTIVE
                   ? "opacity-100"
@@ -137,17 +140,17 @@ function CompanionInterlink({
               )}
             >
               <Image
-                src={`/icons/${subject}.svg`}
-                alt={subject!}
-                width={150}
-                height={150}
-                className="max-sm:w-fit"
+                className="size-44 rounded-lg max-sm:size-24"
+                width={128}
+                height={128}
+                src={photoUrl ? photoUrl : `/icons/${subject}.svg`}
+                alt={photoUrl ? name! : subject!}
               />
             </div>
 
             <div
               className={cn(
-                "absolute transition-opacity duration-1000",
+                "absolute z-[1] transition-opacity duration-1000",
                 callStatus === ECallStatus.ACTIVE ? "opacity-100" : "opacity-0",
               )}
             >
@@ -155,7 +158,7 @@ function CompanionInterlink({
                 lottieRef={lottieRef}
                 animationData={soundWaveAnimation}
                 className="companion-lottie"
-                autoPlay={false}
+                autoPlay
               />
             </div>
           </div>
@@ -209,7 +212,7 @@ function CompanionInterlink({
               ? "end session"
               : callStatus === ECallStatus.CONNECTING
                 ? "connecting"
-                : "end session"}
+                : "start session"}
           </button>
         </div>
       </section>

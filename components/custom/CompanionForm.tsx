@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "../ui/Select";
 import { subjects } from "@/constants";
-import { error as errorMessage } from "@/constants/message";
+import { error as errorMessage, successMessage } from "@/constants/message";
 import { Textarea } from "../ui/Textarea";
 import { createCompanion } from "@/lib/services/companion";
 import { redirect } from "next/navigation";
@@ -110,9 +110,14 @@ const CompanionForm = () => {
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const { companion, error } = await createCompanion(values);
+    const { companion, error, errorDescription } =
+      await createCompanion(values);
 
     if (companion) {
+      toast.success(successMessage.createSuccess, {
+        ...getToastStyle("success"),
+        description: errorDescription,
+      });
       redirect(`/companions/${companion.id}`);
     } else {
       // show toast instead of redirect, which is bad UX
@@ -126,7 +131,11 @@ const CompanionForm = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-8">
+      <form
+        inert={form.formState.isSubmitting}
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-8 pb-8"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -196,7 +205,10 @@ const CompanionForm = () => {
                 <Switch
                   leftLabel="Female"
                   rightLabel="Male"
-                  onCheckedChange={field.onChange}
+                  onCheckedChange={(val) => {
+                    field.onChange(val);
+                    form.resetField("voiceId");
+                  }}
                   checked={field.value}
                 />
               </FormControl>
@@ -216,7 +228,6 @@ const CompanionForm = () => {
                   checked={field.value}
                   onCheckedChange={(val) => {
                     field.onChange(val);
-                    // TODO
                     form.resetField("voiceId");
                   }}
                 />
@@ -243,7 +254,7 @@ const CompanionForm = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {voices[currentGender]
-                      .filter((voice) => voice.style !== currentStyle)
+                      .filter((voice) => voice.style === currentStyle)
                       .map((subject) => (
                         <SelectItem key={subject.id} value={subject.id}>
                           {subject.name}
@@ -273,7 +284,9 @@ const CompanionForm = () => {
           <Button variant="outline" onClick={() => form.reset()} type="reset">
             Reset
           </Button>
-          <Button type="submit">Submit</Button>
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            Submit
+          </Button>
         </div>
       </form>
     </Form>

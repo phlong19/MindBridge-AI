@@ -47,6 +47,7 @@ export type Database = {
           gender: boolean | null;
           id: string;
           name: string | null;
+          photoUrl: string | null;
           style: boolean | null;
           subject: string | null;
           topic: string | null;
@@ -59,6 +60,7 @@ export type Database = {
           gender?: boolean | null;
           id?: string;
           name?: string | null;
+          photoUrl?: string | null;
           style?: boolean | null;
           subject?: string | null;
           topic?: string | null;
@@ -71,6 +73,7 @@ export type Database = {
           gender?: boolean | null;
           id?: string;
           name?: string | null;
+          photoUrl?: string | null;
           style?: boolean | null;
           subject?: string | null;
           topic?: string | null;

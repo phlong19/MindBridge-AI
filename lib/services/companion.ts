@@ -8,17 +8,22 @@ import { CreateCompanion, GetAllCompanions } from "@/types";
 //#region create
 export async function createCompanion(formData: CreateCompanion) {
   const { userId: author } = await auth();
+  const gender = formData.gender ? "men" : "women";
 
   const supabase = createSupabaseClient();
 
   const { data, error } = await supabase
     .from("companions")
-    .insert({ ...formData, author, voiceId: "" })
+    .insert({
+      ...formData,
+      author,
+      photoUrl: `https://randomuser.me/api/portraits/${gender}/${Math.floor(Math.random() * 100)}}.jpg`,
+    })
     .select();
 
   if (error && !data) {
     console.log(error.message);
-    return { error: errorMessage.insertFail };
+    return { error: errorMessage.insertFail, errorDescription: error.message };
   }
 
   return { companion: data[0] };

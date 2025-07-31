@@ -74,15 +74,11 @@ interface SavedMessage {
   content: string;
 }
 
-interface CompanionComponentProps {
+type CompanionRow = Database["public"]["Tables"]["companions"]["Row"];
+interface CompanionComponentProps extends CompanionRow {
   companionId: string | null;
-  subject: string | null;
-  topic: string | null;
-  name: string | null;
   userName: string | null;
   userImage: string | null;
-  voiceId: string | null;
-  style: boolean | null;
 }
 
 interface VoiceGroup {
@@ -93,3 +89,5 @@ interface VoiceGroup {
 type VoiceRow = Database["public"]["Tables"]["voices"]["Row"];
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface Voice extends VoiceRow {}
+
+type Plans = "starter" | "pro" | "ultimate";

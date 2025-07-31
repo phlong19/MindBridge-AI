@@ -6,9 +6,14 @@ const isProtectedRoute = createRouteMatcher(["/companions(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
+  // let { userId } = await auth();
   const response = NextResponse.redirect(
     new URL(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!, req.url),
   );
+
+  // if(!userId) {
+  //   userId= 'user_2zRlKzIB7T3O2tK7VZUTISEaO6j'
+  // }
 
   // admin route
   if (
