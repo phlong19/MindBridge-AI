@@ -1,24 +1,35 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isProtectedRoute = createRouteMatcher(["/admin(.*)"]);
+const isProtectedAdminRoute = createRouteMatcher(["/admin(.*)"]);
+const isProtectedRoute = createRouteMatcher(["/companions(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
+  // let { userId } = await auth();
+  const response = NextResponse.redirect(
+    new URL(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!, req.url),
+  );
 
+  // if(!userId) {
+  //   userId= 'user_2zRlKzIB7T3O2tK7VZUTISEaO6j'
+  // }
+
+  // admin route
   if (
     (!userId || userId !== process.env.ADMIN_USER_ID) &&
-    isProtectedRoute(req)
+    isProtectedAdminRoute(req)
   ) {
-    const response = NextResponse.redirect(
-      new URL(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!, req.url),
-    );
-
     response.headers.append(
       "Set-Cookie",
       `authorization=1; Path=/; Max-Age=10; SameSite=Lax`,
     );
 
+    return response;
+  }
+
+  // not authenticated
+  if (isProtectedRoute(req) && !userId) {
     return response;
   }
 

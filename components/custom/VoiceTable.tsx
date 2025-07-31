@@ -1,6 +1,5 @@
 "use client";
 
-import dayjs from "dayjs";
 import {
   Table,
   TableBody,
@@ -60,9 +59,10 @@ import { Voice } from "@/types";
 
 interface Props {
   data: Voice[];
+  lastUpdated?: string;
 }
 
-function VoiceTable({ data }: Props) {
+function VoiceTable({ data, lastUpdated }: Props) {
   const [nameFilter, setNameFilter] = useState("");
   const [currentPlayingUrl, setCurrentPlayingUrl] = useState<string | null>(
     null,
@@ -102,6 +102,13 @@ function VoiceTable({ data }: Props) {
       {
         accessorKey: "accent",
         header: "Accent",
+        cell: ({ getValue }) => (
+          <div className="capitalize">{getValue() as string}</div>
+        ),
+      },
+      {
+        accessorKey: "style",
+        header: "Style",
         cell: ({ getValue }) => (
           <div className="capitalize">{getValue() as string}</div>
         ),
@@ -214,10 +221,7 @@ function VoiceTable({ data }: Props) {
       {/* synced to db */}
       <div className="flex w-full flex-col items-center justify-between max-lg:items-start lg:flex-row">
         <TypographyP className="text-muted-foreground !my-3">
-          Last updated at{" "}
-          {dayjs(data[0]?.createdAt).format(
-            "dddd, MMM DD YYYY - HH:mm:ss A UTCZ",
-          )}
+          Last updated at {lastUpdated}
         </TypographyP>
         <div className="flex w-full items-center gap-3 lg:max-w-md">
           {/* filter */}
@@ -229,10 +233,13 @@ function VoiceTable({ data }: Props) {
             />
             {nameFilter.length ? (
               <Tooltip>
-                <TooltipTrigger className="absolute top-1/2 right-0 -translate-y-1/2 rounded-l-[0]">
-                  <Button variant="ghost" onClick={() => updateNameFilter()}>
-                    <X />
-                  </Button>
+                <TooltipTrigger className="absolute top-1/2 right-[1px] -translate-y-1/2 rounded-l-[0]">
+                  <div
+                    className="hover:bg-accent flex size-[34px] cursor-pointer items-center justify-center rounded-sm bg-transparent p-[5px] transition-all duration-200"
+                    onClick={() => updateNameFilter()}
+                  >
+                    <X size={16} />
+                  </div>
                 </TooltipTrigger>
                 <TooltipContent>Clear</TooltipContent>
               </Tooltip>

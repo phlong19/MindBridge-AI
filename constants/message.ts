@@ -27,3 +27,20 @@ export const error = {
     "A required parameter is missing. Please check your request and try again.",
   unknownError: "An unknown error occurred. Please try again later.",
 };
+
+export const successMessage = {
+  syncComplete: "A syncing process was done successfully!",
+  createSuccess: "A new companion created successfully.",
+  saveSuccess: "Changes have been saved successfully.",
+  updateSuccess: "Update completed successfully.",
+  deleteSuccess: "Item deleted successfully.",
+  uploadSuccess: "File uploaded successfully.",
+  submitSuccess: "Form submitted successfully.",
+  loginSuccess: "Logged in successfully.",
+  logoutSuccess: "Logged out successfully.",
+  passwordChangeSuccess: "Password changed successfully.",
+  emailSent: "Email has been sent successfully.",
+  settingsUpdated: "Settings updated successfully.",
+  profileUpdated: "Profile updated successfully.",
+  actionCompleted: "Action completed successfully!",
+};

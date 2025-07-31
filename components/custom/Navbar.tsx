@@ -5,6 +5,7 @@ import {
   SignedIn,
   SignedOut,
   SignInButton,
+  SignOutButton,
   SignUpButton,
   UserButton,
   useUser,
@@ -18,6 +19,7 @@ import {
   DrawerClose,
   DrawerContent,
   DrawerDescription,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -25,22 +27,33 @@ import {
 import {
   AlignRight,
   AudioLines,
+  BadgeCheckIcon,
   CircleDollarSign,
+  Crown,
   FolderKanban,
   Handshake,
   House,
+  Rocket,
+  Sprout,
+  UserRoundPlus,
   X,
 } from "lucide-react";
 import { JSX, useEffect, useState } from "react";
 import Loading from "./Loading";
 import { toast } from "sonner";
 import { error as errorMessage } from "@/constants/message";
+import { Badge } from "../ui/Badge";
+import { useAuth } from "@clerk/nextjs";
+import { plans } from "@/constants";
+import { Plans } from "@/types";
+import { Button } from "../ui/Button";
 
 interface NavLink {
   label: string;
   href: string;
   icon: JSX.Element;
   admin?: boolean;
+  exact?: boolean;
 }
 
 const navLinks: NavLink[] = [
@@ -52,7 +65,17 @@ const navLinks: NavLink[] = [
   },
   { href: "/", label: "Home", icon: <House size="20" /> },
   { href: "/voices", label: "Voices Library", icon: <AudioLines size="20" /> },
-  { label: "Companions", href: "/companions", icon: <Handshake size="20" /> },
+  {
+    label: "Companions",
+    href: "/companions",
+    icon: <Handshake size="20" />,
+    exact: true,
+  },
+  {
+    label: "New Companions",
+    href: "/companions/new",
+    icon: <UserRoundPlus size="20" />,
+  },
   {
     label: "Subscription",
     href: "/subscription",
@@ -63,9 +86,48 @@ const navLinks: NavLink[] = [
 const Navbar = () => {
   const path = usePathname();
   const [open, setOpen] = useState(false);
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const [isClient, setIsClient] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { has } = useAuth();
+
+  function renderPlanBadge() {
+    let currentPlan: Plans | undefined;
+    let bgColor = "";
+    let icon;
+
+    for (const plan of plans) {
+      if (has?.({ plan })) {
+        currentPlan = plan;
+      }
+    }
+    if (currentPlan) {
+      switch (currentPlan) {
+        case "starter":
+          bgColor = "#00a63e";
+          icon = <Sprout />;
+          break;
+        case "pro":
+          bgColor = "#f9d257";
+          icon = <Rocket />;
+          break;
+        case "ultimate":
+          bgColor = "var(--destructive)";
+          icon = <Crown />;
+          break;
+      }
+
+      return (
+        <Badge
+          style={{ backgroundColor: bgColor }}
+          className={`capitalize ${currentPlan === "pro" ? "text-foreground" : ""}`}
+        >
+          {icon}
+          {currentPlan}
+        </Badge>
+      );
+    }
+  }
 
   useEffect(() => {
     setIsClient(true);
@@ -98,10 +160,11 @@ const Navbar = () => {
   }
 
   function renderNavLinks(isDrawer = false) {
-    return navLinks.map(({ href, icon, label, admin }) => {
+    return navLinks.map(({ href, icon, label, admin, exact }) => {
       const className = cn(
         isDrawer ? "my-3 flex items-center gap-2 text-base" : "",
-        (path === href || (href !== "/" && path.startsWith(href + "/"))) &&
+        (path === href ||
+          (href !== "/" && path.startsWith(href + "/") && !exact)) &&
           "text-primary font-semibold",
       );
 
@@ -156,8 +219,18 @@ const Navbar = () => {
             <UserButton />
           </SignedIn>
         </div>
+        {open ? (
+          <div className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50"></div>
+        ) : (
+          <></>
+        )}
         <div className="block lg:hidden">
-          <Drawer direction="right" open={open} onOpenChange={setOpen}>
+          <Drawer
+            direction="right"
+            modal={false}
+            open={open}
+            onOpenChange={setOpen}
+          >
             <DrawerTrigger className="flex w-full cursor-pointer justify-end">
               <AlignRight />
             </DrawerTrigger>
@@ -169,40 +242,62 @@ const Navbar = () => {
                     <DrawerDescription>Navigation panel</DrawerDescription>
                   </div>
 
-                  <DrawerClose>
+                  <DrawerClose className="cursor-pointer">
                     <X />
                   </DrawerClose>
                 </div>
               </DrawerHeader>
 
               <DrawerBody className="flex flex-col">
-                <div className="flex flex-row items-center gap-2 pb-3">
-                  <SignedOut>
-                    <SignInButton>
-                      <button
-                        onClick={() => setOpen(false)}
-                        type="button"
-                        className="btn-login w-fit max-md:py-1.5"
-                      >
-                        Login
-                      </button>
-                    </SignInButton>
-                    <SignUpButton>
-                      <button
-                        onClick={() => setOpen(false)}
-                        type="button"
-                        className="btn-login border-transparent bg-[#6c47ff] text-white max-md:py-1.5"
-                      >
-                        Sign Up
-                      </button>
-                    </SignUpButton>
-                  </SignedOut>
-                  <SignedIn>
-                    <UserButton />
-                  </SignedIn>
-                </div>
                 {renderNavLinks(true)}
               </DrawerBody>
+              <DrawerFooter
+                className={`${isSignedIn ? "justify-between" : "justify-end"} flex-row`}
+              >
+                <SignedOut>
+                  <SignInButton>
+                    <Button
+                      onClick={() => setOpen(false)}
+                      type="button"
+                      variant="outline"
+                      className="btn-login w-fit max-md:py-1.5"
+                    >
+                      Login
+                    </Button>
+                  </SignInButton>
+                  <SignUpButton>
+                    <Button
+                      onClick={() => setOpen(false)}
+                      type="button"
+                      className="btn-login w-fit border-transparent text-white"
+                    >
+                      Sign Up
+                    </Button>
+                  </SignUpButton>
+                </SignedOut>
+                <SignedIn>
+                  <div className="flex items-center gap-3">
+                    <UserButton />
+                    {isAdmin && (
+                      <Badge>
+                        <BadgeCheckIcon />
+                        Admin
+                      </Badge>
+                    )}
+                    {renderPlanBadge()}
+                  </div>
+                </SignedIn>
+                {isSignedIn && (
+                  <SignOutButton>
+                    <Button
+                      type="button"
+                      className="btn-login border-transparent"
+                    >
+                      Logout
+                    </Button>
+                  </SignOutButton>
+                )}
+              </DrawerFooter>
             </DrawerContent>
           </Drawer>
         </div>

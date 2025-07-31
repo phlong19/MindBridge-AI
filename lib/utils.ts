@@ -13,12 +13,7 @@ export const getSubjectColor = (subject: string) => {
   return subjectsColors[subject as keyof typeof subjectsColors];
 };
 
-export const configureAssistant = (
-  // voices: VoiceGroup,
-  voice: string,
-  style: boolean | null,
-) => {
-  console.log(style);
+export const configureAssistant = (voiceId: string) => {
   const assistant: CreateAssistantDTO = {
     name: "Companion",
     firstMessage:
@@ -30,7 +25,7 @@ export const configureAssistant = (
     },
     voice: {
       provider: "11labs",
-      voiceId: voice,
+      voiceId,
       stability: 0.4,
       similarityBoost: 0.8,
       speed: 0.9,

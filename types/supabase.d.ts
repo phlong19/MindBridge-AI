@@ -47,6 +47,7 @@ export type Database = {
           gender: boolean | null;
           id: string;
           name: string | null;
+          photoUrl: string | null;
           style: boolean | null;
           subject: string | null;
           topic: string | null;
@@ -59,6 +60,7 @@ export type Database = {
           gender?: boolean | null;
           id?: string;
           name?: string | null;
+          photoUrl?: string | null;
           style?: boolean | null;
           subject?: string | null;
           topic?: string | null;
@@ -71,6 +73,7 @@ export type Database = {
           gender?: boolean | null;
           id?: string;
           name?: string | null;
+          photoUrl?: string | null;
           style?: boolean | null;
           subject?: string | null;
           topic?: string | null;
@@ -125,12 +128,13 @@ export type Database = {
           isDeleted: boolean | null;
           isPublic: boolean | null;
           name: string | null;
+          orgId: string | null;
           previewUrl: string | null;
           provider: string | null;
           providerId: string;
           slug: string | null;
+          style: string | null;
           updatedAt: string | null;
-          orgId: string | null;
         };
         Insert: {
           accent?: string | null;
@@ -141,12 +145,13 @@ export type Database = {
           isDeleted?: boolean | null;
           isPublic?: boolean | null;
           name?: string | null;
+          orgId?: string | null;
           previewUrl?: string | null;
           provider?: string | null;
           providerId: string;
           slug?: string | null;
+          style?: string | null;
           updatedAt?: string | null;
-          orgId?: string | null;
         };
         Update: {
           accent?: string | null;
@@ -157,12 +162,13 @@ export type Database = {
           isDeleted?: boolean | null;
           isPublic?: boolean | null;
           name?: string | null;
+          orgId?: string | null;
           previewUrl?: string | null;
           provider?: string | null;
           providerId?: string;
           slug?: string | null;
+          style?: string | null;
           updatedAt?: string | null;
-          orgId?: string | null;
         };
         Relationships: [];
       };

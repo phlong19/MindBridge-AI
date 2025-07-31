@@ -228,18 +228,6 @@ body {
   }
 }
 
-.loader-wrapper.fullscreen {
-  position: absolute;
-  inset: 0;
-  height: 100dvh;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: white;
-  z-index: 1;
-}
-
 .loader-wrapper {
   min-height: 60dvh;
   height: 100%;

@@ -13,16 +13,15 @@ import {
 } from "@/components/ui/Form";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { error as errorMessage } from "@/constants/message";
+import { error as errorMessage, successMessage } from "@/constants/message";
 import { fetchVoicesAndSync } from "@/lib/services/voices";
 import { toast } from "sonner";
 import VoiceTable from "@/components/custom/VoiceTable";
 import { Voice } from "@/types";
 import { getToastStyle } from "@/lib/utils";
+import GoBackButton from "@/components/custom/GoBackButton";
 
 const formSchema = z.object({
   key: z.coerce.string().min(1, { message: "Invalid key." }),
@@ -35,13 +34,13 @@ export default function Page() {
     resolver: zodResolver(formSchema),
     defaultValues: { key: "" },
   });
-  const router = useRouter();
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const voices = await fetchVoicesAndSync("11labs", "Bearer " + values.key);
 
     if (voices.length && Array.isArray(voices)) {
       setVoiceData(voices);
+      toast.success(successMessage.syncComplete, getToastStyle("success"));
     } else if (!Array.isArray(voices)) {
       toast.error(voices.error, {
         ...getToastStyle("error"),
@@ -82,13 +81,11 @@ export default function Page() {
 
   return (
     <div className="w-full p-5 md:p-10">
-      <Button className="!px-0" onClick={() => router.back()} variant="link">
-        <ArrowLeft />
-        Go back
-      </Button>
+      <GoBackButton />
       <div className="flex flex-col gap-5 pt-5">
         <Form {...form}>
           <form
+            inert={form.formState.isSubmitting}
             className="mx-auto w-full md:w-lg lg:w-2/3 xl:w-1/2"
             onSubmit={form.handleSubmit(onSubmit)}
           >

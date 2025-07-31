@@ -22,12 +22,17 @@ import {
   SelectValue,
 } from "../ui/Select";
 import { subjects } from "@/constants";
+import { error as errorMessage, successMessage } from "@/constants/message";
 import { Textarea } from "../ui/Textarea";
 import { createCompanion } from "@/lib/services/companion";
 import { redirect } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Switch from "../ui/Switch";
+import { Voice, VoiceGroup } from "@/types";
+import { getToastStyle } from "@/lib/utils";
+import { getVoicesList } from "@/lib/services/voices";
+import FormSkeleton from "./FormSkeleton";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Please enter your companion's name" }),
@@ -41,6 +46,8 @@ const formSchema = z.object({
 
 const CompanionForm = () => {
   const [isOpen, setIsOpen] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [voices, setVoices] = useState<VoiceGroup>({ male: [], female: [] });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -55,24 +62,80 @@ const CompanionForm = () => {
     },
   });
 
+  const currentGender = form.getValues("gender") ? "male" : "female";
+  const currentStyle = form.getValues("style") ? "formal" : "casual";
+
+  function showFetchFailToast() {
+    return toast.error(errorMessage.fetchFail, getToastStyle("error"));
+  }
+
+  useEffect(() => {
+    async function getVoicesAndGroup() {
+      try {
+        setIsLoading(true);
+        const res = await getVoicesList();
+
+        if (res.data) {
+          const group = res.data.reduce(
+            (group: VoiceGroup, cur: Voice) => {
+              const key = cur.gender as keyof VoiceGroup;
+
+              if (key && !group[key]) {
+                group[key] = [];
+              }
+
+              group[key].push(cur);
+
+              return group;
+            },
+            { male: [], female: [] },
+          );
+
+          setVoices(group);
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          showFetchFailToast();
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    getVoicesAndGroup();
+  }, []);
+
   function onOpenSelect(name: string) {
     setIsOpen((prev) => (prev === name ? "" : name));
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const { companion, error } = await createCompanion(values);
+    const { companion, error, errorDescription } =
+      await createCompanion(values);
 
     if (companion) {
+      toast.success(successMessage.createSuccess, {
+        ...getToastStyle("success"),
+        description: errorDescription,
+      });
       redirect(`/companions/${companion.id}`);
     } else {
       // show toast instead of redirect, which is bad UX
-      toast(error);
+      toast.error(error, getToastStyle("error"));
     }
+  }
+
+  if (isLoading) {
+    return <FormSkeleton />;
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-8">
+      <form
+        inert={form.formState.isSubmitting}
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-8 pb-8"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -142,7 +205,10 @@ const CompanionForm = () => {
                 <Switch
                   leftLabel="Female"
                   rightLabel="Male"
-                  onCheckedChange={field.onChange}
+                  onCheckedChange={(val) => {
+                    field.onChange(val);
+                    form.resetField("voiceId");
+                  }}
                   checked={field.value}
                 />
               </FormControl>
@@ -160,7 +226,10 @@ const CompanionForm = () => {
                   leftLabel="Casual"
                   rightLabel="Formal"
                   checked={field.value}
-                  onCheckedChange={field.onChange}
+                  onCheckedChange={(val) => {
+                    field.onChange(val);
+                    form.resetField("voiceId");
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -184,14 +253,17 @@ const CompanionForm = () => {
                     <SelectValue placeholder="Select voice model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {subjects.map((subject) => (
-                      <SelectItem key={subject} value={subject}>
-                        {subject}
-                      </SelectItem>
-                    ))}
+                    {voices[currentGender]
+                      .filter((voice) => voice.style === currentStyle)
+                      .map((subject) => (
+                        <SelectItem key={subject.id} value={subject.id}>
+                          {subject.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -212,7 +284,9 @@ const CompanionForm = () => {
           <Button variant="outline" onClick={() => form.reset()} type="reset">
             Reset
           </Button>
-          <Button type="submit">Submit</Button>
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            Submit
+          </Button>
         </div>
       </form>
     </Form>

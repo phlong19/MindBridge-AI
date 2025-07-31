@@ -1,8 +1,13 @@
-import React from "react";
+import { cn } from "@/lib/utils";
 
 const Loading = ({ full = false }: { full?: boolean }) => {
   return (
-    <div className={`loader-wrapper ${full && "fullscreen"}`}>
+    <div
+      className={cn(
+        "loader-wrapper",
+        full && "absolute inset-0 z-10 !min-h-screen bg-white",
+      )}
+    >
       <div className="loader"></div>
     </div>
   );
