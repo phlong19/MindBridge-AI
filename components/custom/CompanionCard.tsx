@@ -4,6 +4,7 @@ import { Database } from "@/types/supabase";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/Tooltip";
 
 type Props = Database["public"]["Tables"]["companions"]["Row"] & {
   color: string;
@@ -44,7 +45,14 @@ const CompanionCard = ({
       </div>
 
       <h2 className="text-2xl font-bold">{name}</h2>
-      <p className="text-sm">{topic}</p>
+      <Tooltip>
+        <TooltipTrigger>
+          <p className="line-clamp-4 overflow-hidden text-left text-sm text-ellipsis">
+            {topic}
+          </p>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-[600px]">{topic}</TooltipContent>
+      </Tooltip>
       <div className="flex items-center gap-2">
         <Image
           src="/icons/clock.svg"

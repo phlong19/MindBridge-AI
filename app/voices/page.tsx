@@ -13,9 +13,9 @@ const Page = () => {
   const [data, setData] = useState<Voice[]>([]);
   const [error, setError] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const formattedLastUpdate = dayjs(data[0]?.createdAt).format(
-    "dddd, MMM DD YYYY - HH:mm:ss A UTCZ",
-  );
+  const formattedLastUpdate = data[0]?.id
+    ? dayjs(data[0]?.createdAt).format("dddd, MMM DD YYYY - HH:mm:ss A UTCZ")
+    : "";
 
   useEffect(() => {
     async function fetchData() {

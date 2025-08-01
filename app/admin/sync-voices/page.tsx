@@ -22,21 +22,37 @@ import VoiceTable from "@/components/custom/VoiceTable";
 import { Voice } from "@/types";
 import { getToastStyle } from "@/lib/utils";
 import GoBackButton from "@/components/custom/GoBackButton";
+import { TypographyH3 } from "@/components/ui/Typography";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
 
 const formSchema = z.object({
   key: z.coerce.string().min(1, { message: "Invalid key." }),
+  limit: z.coerce
+    .number()
+    .min(1, { message: "Please select number of voices to sync." }),
 });
 
 export default function Page() {
   const [keyInformation, setKeyInformation] = useState<JwtPayload>({});
+  const [isOpen, setIsOpen] = useState("");
   const [voiceData, setVoiceData] = useState<Voice[]>([]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { key: "" },
+    defaultValues: { key: "", limit: 100 },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const voices = await fetchVoicesAndSync("11labs", "Bearer " + values.key);
+    const voices = await fetchVoicesAndSync(
+      "11labs",
+      "Bearer " + values.key,
+      values.limit,
+    );
 
     if (voices.length && Array.isArray(voices)) {
       setVoiceData(voices);
@@ -89,6 +105,43 @@ export default function Page() {
             className="mx-auto w-full md:w-lg lg:w-2/3 xl:w-1/2"
             onSubmit={form.handleSubmit(onSubmit)}
           >
+            <TypographyH3 className="mb-6">Configurations</TypographyH3>
+            <FormField
+              control={form.control}
+              name="limit"
+              render={({ field }) => {
+                const stringValue = String(field.value);
+                return (
+                  <FormItem className="mb-4">
+                    <FormLabel>Number of voices to sync</FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        onOpenChange={() =>
+                          setIsOpen((prev) =>
+                            prev === field.name ? "" : field.name,
+                          )
+                        }
+                        value={stringValue}
+                      >
+                        <SelectTrigger isOpen={isOpen === field.name}>
+                          <SelectValue placeholder="subject" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[1, 5, 10, 20, 50, 100, 200, 300].map(
+                            (limit, index) => (
+                              <SelectItem key={index} value={String(limit)}>
+                                {limit}
+                              </SelectItem>
+                            ),
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                  </FormItem>
+                );
+              }}
+            />
             <FormField
               control={form.control}
               name="key"

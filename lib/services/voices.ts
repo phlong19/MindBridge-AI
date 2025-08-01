@@ -10,13 +10,14 @@ type Providers = "11labs" | "openai" | "playht" | "azure";
 export async function fetchVoicesAndSync(
   provider: Providers,
   token: string,
+  limit: number,
 ): Promise<Voice[] | Record<string, string>> {
   let rawData: Omit<Voice, "style">[];
   let data: Voice[];
 
   try {
     const res = await fetch(
-      `https://api.vapi.ai/voice-library/${provider}?limit=5`,
+      `https://api.vapi.ai/voice-library/${provider}?limit=${limit}`,
       {
         headers: {
           Authorization: token,

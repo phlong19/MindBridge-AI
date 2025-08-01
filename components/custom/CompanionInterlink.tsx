@@ -7,7 +7,8 @@ import { useEffect, useRef, useState } from "react";
 import Lottie, { LottieRefCurrentProps } from "lottie-react";
 import soundWaveAnimation from "@/constants/sound-voice.json";
 import { AssistantOverrides } from "@vapi-ai/web/dist/api";
-import { CompanionComponentProps } from "@/types";
+import { CompanionComponentProps, SavedMessage } from "@/types";
+import { TypographyP } from "../ui/Typography";
 
 enum ECallStatus {
   INACTIVE = "INACTIVE",
@@ -51,6 +52,7 @@ function CompanionInterlink({
   );
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [messages, setMessages] = useState<SavedMessage[]>([]);
 
   useEffect(() => {
     if (lottieRef) {
@@ -67,7 +69,21 @@ function CompanionInterlink({
     const actions: { event: VapiEventNames; method: (arg0?: any) => void }[] = [
       { event: "call-start", method: () => setCallStatus(ECallStatus.ACTIVE) },
       { event: "call-end", method: () => setCallStatus(ECallStatus.FINISHED) },
-      { event: "message", method: () => {} },
+      {
+        event: "message",
+        method: (message: Message) => {
+          if (
+            message.type === "transcript" &&
+            message.transcriptType === "final"
+          ) {
+            const newMessage = {
+              role: message.role,
+              content: message.transcript,
+            };
+            setMessages((prev) => [newMessage, ...prev]);
+          }
+        },
+      },
       { event: "error", method: (error: Error) => console.log("error", error) },
       { event: "speech-start", method: () => setIsSpeaking(true) },
       { event: "speech-end", method: () => setIsSpeaking(false) },
@@ -101,16 +117,10 @@ function CompanionInterlink({
         style,
       },
       clientMessages: "transcript",
+      serverMessages: undefined,
     };
 
-    const call = await vapi.start(
-      configureAssistant(voiceId!),
-      assistantOverrides,
-    );
-
-    if (call) {
-      setCallStatus(ECallStatus.ACTIVE);
-    }
+    await vapi.start(configureAssistant(voiceId!), assistantOverrides);
   }
 
   function handleDisconnect() {
@@ -183,6 +193,7 @@ function CompanionInterlink({
             className="btn-mic"
             type="button"
             onClick={onToggleMicrophone}
+            disabled={callStatus !== ECallStatus.ACTIVE}
           >
             <Image
               src={isMuted ? "/icons/mic-off.svg" : "/icons/mic-on.svg"}
@@ -218,7 +229,20 @@ function CompanionInterlink({
       </section>
 
       <section className="transcript">
-        <div className="transcript-message no-scrollbar"></div>
+        <div className="transcript-message no-scrollbar">
+          {messages.map(({ role, content }, index) =>
+            role === "assistant" ? (
+              <TypographyP key={index} className="max-sm:text-sm">
+                {name?.split(" ")?.[0].replace(`/[.,]/g`, "")}: {content}
+              </TypographyP>
+            ) : (
+              <TypographyP key={index}>
+                {userName}: {content}
+              </TypographyP>
+            ),
+          )}
+        </div>
+        <div className="transcript-fade"></div>
       </section>
     </section>
   );

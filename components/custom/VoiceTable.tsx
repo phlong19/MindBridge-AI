@@ -220,9 +220,15 @@ function VoiceTable({ data, lastUpdated }: Props) {
       <TypographyH3>Available voices</TypographyH3>
       {/* synced to db */}
       <div className="flex w-full flex-col items-center justify-between max-lg:items-start lg:flex-row">
-        <TypographyP className="text-muted-foreground !my-3">
-          Last updated at {lastUpdated}
-        </TypographyP>
+        {!!lastUpdated ? (
+          <TypographyP className="text-muted-foreground !my-3">
+            Last updated at {lastUpdated}
+          </TypographyP>
+        ) : (
+          <TypographyP>
+            No data available to determine the last update.
+          </TypographyP>
+        )}
         <div className="flex w-full items-center gap-3 lg:max-w-md">
           {/* filter */}
           <div className="relative grow py-4">
