@@ -5,6 +5,7 @@
 //   accountId: string;
 // };
 
+import { JSX } from "react";
 import { Database } from "./supabase";
 
 enum Subject {
@@ -37,6 +38,7 @@ interface CreateCompanion {
   style: boolean;
   duration: number;
   voiceId: string;
+  slug: string;
 }
 
 interface GetAllCompanions {
@@ -75,10 +77,16 @@ interface SavedMessage {
 }
 
 type CompanionRow = Database["public"]["Tables"]["companions"]["Row"];
+
+type Companion = Database["public"]["Tables"]["companions"]["Row"] & {
+  slug?: string;
+  color: string;
+};
+
 interface CompanionComponentProps extends CompanionRow {
-  companionId: string | null;
-  userName: string | null;
-  userImage: string | null;
+  companionId: string;
+  userName: string;
+  userImage: string;
 }
 
 interface VoiceGroup {
@@ -91,3 +99,11 @@ type VoiceRow = Database["public"]["Tables"]["voices"]["Row"];
 interface Voice extends VoiceRow {}
 
 type Plans = "starter" | "pro" | "ultimate";
+
+interface NavLink {
+  label: string;
+  href: string;
+  icon: JSX.Element;
+  admin?: boolean;
+  exact?: boolean;
+}

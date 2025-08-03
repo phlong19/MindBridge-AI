@@ -1,6 +1,11 @@
 import { cn } from "@/lib/utils";
 
-const Loading = ({ full = false }: { full?: boolean }) => {
+interface Props {
+  full?: boolean;
+  custom?: boolean;
+}
+
+const Loading = ({ full = false, custom }: Props) => {
   return (
     <div
       className={cn(
@@ -8,7 +13,7 @@ const Loading = ({ full = false }: { full?: boolean }) => {
         full && "absolute inset-0 z-10 !min-h-screen bg-white",
       )}
     >
-      <div className="loader"></div>
+      <div className={custom ? "loader-custom" : "loader"}></div>
     </div>
   );
 };

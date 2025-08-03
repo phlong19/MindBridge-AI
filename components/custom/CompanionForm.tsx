@@ -48,6 +48,8 @@ const CompanionForm = () => {
   const [isOpen, setIsOpen] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [voices, setVoices] = useState<VoiceGroup>({ male: [], female: [] });
+  // for real voiceId Vapi use to connect
+  const [slug, setSlug] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,6 +66,9 @@ const CompanionForm = () => {
 
   const currentGender = form.getValues("gender") ? "male" : "female";
   const currentStyle = form.getValues("style") ? "formal" : "casual";
+  const filteredVoices = voices[currentGender].filter(
+    (voice) => voice.style === currentStyle,
+  );
 
   function showFetchFailToast() {
     return toast.error(errorMessage.fetchFail, getToastStyle("error"));
@@ -110,8 +115,10 @@ const CompanionForm = () => {
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const { companion, error, errorDescription } =
-      await createCompanion(values);
+    const { companion, error, errorDescription } = await createCompanion({
+      ...values,
+      slug,
+    });
 
     if (companion) {
       toast.success(successMessage.createSuccess, {
@@ -245,7 +252,12 @@ const CompanionForm = () => {
               <FormDescription>Based on Gender and Style</FormDescription>
               <FormControl>
                 <Select
-                  onValueChange={field.onChange}
+                  onValueChange={(val) => {
+                    setSlug(
+                      filteredVoices.find((i) => i.id === val)?.slug ?? "",
+                    );
+                    field.onChange(val);
+                  }}
                   onOpenChange={() => onOpenSelect(field.name)}
                   value={field.value}
                 >
@@ -253,13 +265,11 @@ const CompanionForm = () => {
                     <SelectValue placeholder="Select voice model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {voices[currentGender]
-                      .filter((voice) => voice.style === currentStyle)
-                      .map((subject) => (
-                        <SelectItem key={subject.id} value={subject.id}>
-                          {subject.name}
-                        </SelectItem>
-                      ))}
+                    {filteredVoices.map(({ name, id }) => (
+                      <SelectItem key={id} value={id}>
+                        {name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </FormControl>

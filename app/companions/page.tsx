@@ -65,6 +65,7 @@ const Page = async ({ searchParams }: SearchParams) => {
               <CompanionCard
                 key={companion.id}
                 {...companion}
+                slug={companion.slug!}
                 color={getSubjectColor(companion.subject ?? "")}
               />
             ))}

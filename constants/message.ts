@@ -1,6 +1,7 @@
 export const error = {
   missingEnvVariables: "Missing some environment variables",
   insertFail: "Unable to insert data into the table. Please try again later.",
+  sessionHistorySaveFail: "Unable to save your session history.",
   fetchFail:
     "Unable to fetch data. Please check the server or try again later.",
   getDetailFail:

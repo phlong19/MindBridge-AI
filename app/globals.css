@@ -143,13 +143,13 @@ body {
 
 @layer components {
   .home-section {
-    @apply flex w-full items-start justify-between gap-4 max-lg:flex-col-reverse max-lg:items-center;
+    @apply flex w-full items-start gap-4 max-lg:flex-col-reverse max-lg:items-center;
   }
   .companions-grid {
     @apply flex w-full flex-wrap gap-4 max-md:justify-center;
   }
   .companion-card {
-    @apply flex w-full flex-col justify-between gap-5 rounded-4xl border border-black px-4 py-4 min-lg:max-w-[410px];
+    @apply flex w-full flex-col justify-between gap-2.5 rounded-4xl border border-black px-4 py-4 min-lg:max-w-[410px] lg:gap-3.5;
   }
   .subject-badge {
     @apply rounded-4xl bg-black px-2 py-1 text-sm text-white capitalize;
@@ -193,7 +193,7 @@ body {
     @apply mt-4 flex size-[300px] items-center justify-center rounded-lg max-sm:size-[100px];
   }
   .companion-lottie {
-    @apply size-[300px] max-sm:size-[100px];
+    @apply size-[350px] max-sm:size-[180px];
   }
 
   .user-section {
@@ -229,7 +229,7 @@ body {
 }
 
 .loader-wrapper {
-  min-height: 60dvh;
+  min-height: 70dvh;
   height: 100%;
   width: 100%;
   position: relative;
@@ -249,5 +249,25 @@ body {
 @keyframes l2 {
   to {
     transform: rotate(1turn);
+  }
+}
+
+.loader-custom {
+  width: 120px;
+  height: 20px;
+  background: linear-gradient(
+      90deg,
+      #fe593311 33%,
+      #fe593380 50%,
+      #fe593311 66%
+    )
+    #fff3f0;
+  border-radius: 6px;
+  background-size: 300% 100%;
+  animation: l1 1s infinite linear;
+}
+@keyframes l1 {
+  0% {
+    background-position: right;
   }
 }

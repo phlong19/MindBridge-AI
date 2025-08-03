@@ -52,7 +52,6 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-// import { fakeVoices } from "@/constants";
 import ChevronUpDown from "./SortingChevrons";
 import { Input } from "../ui/Input";
 import { Voice } from "@/types";

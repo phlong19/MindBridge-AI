@@ -1,13 +1,22 @@
 "use client";
 
-import { cn, configureAssistant, getSubjectColor } from "@/lib/utils";
+import {
+  cn,
+  configureAssistant,
+  getSubjectColor,
+  getToastStyle,
+} from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import Lottie, { LottieRefCurrentProps } from "lottie-react";
 import soundWaveAnimation from "@/constants/sound-voice.json";
 import { AssistantOverrides } from "@vapi-ai/web/dist/api";
-import { CompanionComponentProps } from "@/types";
+import { CompanionComponentProps, SavedMessage } from "@/types";
+import { TypographyP } from "../ui/Typography";
+import { saveSessionHistory } from "@/lib/services/companion";
+import { toast } from "sonner";
+import { error as errorMessage } from "@/constants/message";
 
 enum ECallStatus {
   INACTIVE = "INACTIVE",
@@ -16,34 +25,35 @@ enum ECallStatus {
   FINISHED = "FINISHED",
 }
 
+interface VapiErrorMessage {
+  action: string;
+  callClientId: string;
+  error: {
+    details?: string;
+    msg?: string;
+    type?: string;
+  };
+  errorMsg?: string;
+}
+
 // copy from Vapi because this one not expose
-type VapiEventNames =
-  | "call-end"
-  | "call-start"
-  | "volume-level"
-  | "speech-start"
-  | "speech-end"
-  | "message"
-  | "video"
-  | "error"
-  | "camera-error"
-  | "network-quality-change"
-  | "network-connection"
-  | "daily-participant-updated"
-  | "call-start-progress"
-  | "call-start-success"
-  | "call-start-failed";
+// prettier-ignore
+type VapiEventNames = "call-end" | "call-start" | "volume-level" | "speech-start"
+  | "speech-end" | "message" | "video" | "error" | "camera-error" | "network-quality-change"
+  | "network-connection" | "daily-participant-updated" | "call-start-progress"
+  | "call-start-success" | "call-start-failed";
 
 function CompanionInterlink({
   subject,
   name,
-  // companionId,
+  companionId,
   style,
   topic,
-  voiceId,
+  slug,
   userImage,
   userName,
   photoUrl,
+  duration,
 }: CompanionComponentProps) {
   const lottieRef = useRef<LottieRefCurrentProps>(null);
   const [callStatus, setCallStatus] = useState<ECallStatus>(
@@ -51,6 +61,7 @@ function CompanionInterlink({
   );
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [messages, setMessages] = useState<SavedMessage[]>([]);
 
   useEffect(() => {
     if (lottieRef) {
@@ -66,9 +77,39 @@ function CompanionInterlink({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const actions: { event: VapiEventNames; method: (arg0?: any) => void }[] = [
       { event: "call-start", method: () => setCallStatus(ECallStatus.ACTIVE) },
-      { event: "call-end", method: () => setCallStatus(ECallStatus.FINISHED) },
-      { event: "message", method: () => {} },
-      { event: "error", method: (error: Error) => console.log("error", error) },
+      {
+        event: "call-end",
+        method: () => {
+          setCallStatus(ECallStatus.FINISHED);
+          saveSessionHistory(companionId);
+        },
+      },
+      {
+        event: "message",
+        method: (message: Message) => {
+          if (
+            message.type === "transcript" &&
+            message.transcriptType === "final"
+          ) {
+            const newMessage = {
+              role: message.role,
+              content: message.transcript,
+            };
+            setMessages((prev) => [newMessage, ...prev]);
+          }
+        },
+      },
+      {
+        event: "error",
+        method: (error: VapiErrorMessage) => {
+          console.log("error", error);
+
+          toast.error(errorMessage.serverError, {
+            ...getToastStyle("error"),
+            description: error?.errorMsg && (error.errorMsg || error.error.msg),
+          });
+        },
+      },
       { event: "speech-start", method: () => setIsSpeaking(true) },
       { event: "speech-end", method: () => setIsSpeaking(false) },
     ];
@@ -100,11 +141,14 @@ function CompanionInterlink({
         topic,
         style,
       },
-      clientMessages: "transcript",
+      //@ts-expect-error wrong value define
+      clientMessages: ["transcript"],
+      //@ts-expect-error wrong value define
+      serverMessages: [],
     };
 
     const call = await vapi.start(
-      configureAssistant(voiceId!),
+      configureAssistant(slug!, duration!),
       assistantOverrides,
     );
 
@@ -114,7 +158,7 @@ function CompanionInterlink({
   }
 
   function handleDisconnect() {
-    //
+    setCallStatus(ECallStatus.FINISHED);
     vapi.stop();
   }
 
@@ -131,12 +175,7 @@ function CompanionInterlink({
             <div
               className={cn(
                 "absolute z-[2] transition-opacity duration-100",
-                callStatus === ECallStatus.FINISHED ||
-                  callStatus === ECallStatus.INACTIVE
-                  ? "opacity-100"
-                  : "opacity-0",
-                callStatus === ECallStatus.CONNECTING &&
-                  "animate-pulse opacity-100",
+                callStatus === ECallStatus.CONNECTING && "animate-pulse",
               )}
             >
               <Image
@@ -183,6 +222,7 @@ function CompanionInterlink({
             className="btn-mic"
             type="button"
             onClick={onToggleMicrophone}
+            disabled={callStatus !== ECallStatus.ACTIVE}
           >
             <Image
               src={isMuted ? "/icons/mic-off.svg" : "/icons/mic-on.svg"}
@@ -218,7 +258,20 @@ function CompanionInterlink({
       </section>
 
       <section className="transcript">
-        <div className="transcript-message no-scrollbar"></div>
+        <div className="transcript-message no-scrollbar">
+          {messages.map(({ content, role }, index) =>
+            role === "assistant" ? (
+              <TypographyP key={index} className="max-sm:text-sm">
+                {name?.split(" ")[0].replace("/[,.]/g/", "")}: {content}
+              </TypographyP>
+            ) : (
+              <TypographyP key={index} className="text-primary max-sm:text-sm">
+                {userName}: {content}
+              </TypographyP>
+            ),
+          )}
+        </div>
+        <div className="transcript-fade"></div>
       </section>
     </section>
   );

@@ -5,7 +5,11 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { hostname: "img.clerk.com" },
-      { hostname: "randomuser.me" },
+      {
+        protocol: "https",
+        hostname: "randomuser.me",
+        pathname: "/api/portraits/**",
+      },
     ],
   },
 };

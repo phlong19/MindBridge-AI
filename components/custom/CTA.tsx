@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "../ui/Button";
 import Image from "next/image";
 import Link from "next/link";
+import { navLinks } from "@/constants";
 
 const CTA = () => {
   return (
@@ -21,7 +22,7 @@ const CTA = () => {
         height={0}
         style={{ width: 360, height: 230 }}
       />
-      <Link href="/companions/new">
+      <Link href={navLinks.newCompanion.href}>
         <Button className="flex items-baseline">
           <Image
             src="/icons/plus.svg"

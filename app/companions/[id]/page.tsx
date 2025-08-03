@@ -7,6 +7,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { error as errorMessage } from "@/constants/message";
 import GoBackButton from "@/components/custom/GoBackButton";
+import { navLinks } from "@/constants";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -24,7 +25,7 @@ const Page = async ({ params }: Props) => {
         error={errorMessage.fetchFail}
         errorDescription={error}
         delay={300}
-        redirectTo="/companions"
+        redirectTo={navLinks.companions.href}
       />
     );
   }
@@ -65,7 +66,7 @@ const Page = async ({ params }: Props) => {
         {...companion}
         companionId={id}
         userImage={user.imageUrl}
-        userName={user.firstName ?? user.username!}
+        userName={user.firstName ?? user.lastName ?? user.username ?? "User"}
       />
     </main>
   );

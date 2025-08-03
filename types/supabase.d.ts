@@ -48,6 +48,7 @@ export type Database = {
           id: string;
           name: string | null;
           photoUrl: string | null;
+          slug: string | null;
           style: boolean | null;
           subject: string | null;
           topic: string | null;
@@ -61,6 +62,7 @@ export type Database = {
           id?: string;
           name?: string | null;
           photoUrl?: string | null;
+          slug?: string | null;
           style?: boolean | null;
           subject?: string | null;
           topic?: string | null;
@@ -74,6 +76,7 @@ export type Database = {
           id?: string;
           name?: string | null;
           photoUrl?: string | null;
+          slug?: string | null;
           style?: boolean | null;
           subject?: string | null;
           topic?: string | null;

@@ -3,7 +3,6 @@ import { twMerge } from "tailwind-merge";
 import { subjectsColors } from "@/constants";
 import { CreateAssistantDTO } from "@vapi-ai/web/dist/api";
 import { ToasterProps } from "sonner";
-// import { VoiceGroup } from "@/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -13,19 +12,22 @@ export const getSubjectColor = (subject: string) => {
   return subjectsColors[subject as keyof typeof subjectsColors];
 };
 
-export const configureAssistant = (voiceId: string) => {
+export const configureAssistant = (slug: string, duration: number) => {
   const assistant: CreateAssistantDTO = {
     name: "Companion",
     firstMessage:
-      "Hello, let's start the session. Today we'll be talking about {{topic}}.",
+      "Hello, let's start the session. Today we'll be talking about {{ topic }}.",
     transcriber: {
       provider: "deepgram",
       model: "nova-3",
       language: "en",
     },
+    endCallMessage:
+      "We’re just about out of time. I'll end the call now — have a productive day! Ciao",
+    maxDurationSeconds: duration * 60,
     voice: {
       provider: "11labs",
-      voiceId,
+      voiceId: slug,
       stability: 0.4,
       similarityBoost: 0.8,
       speed: 0.9,
@@ -53,6 +55,10 @@ export const configureAssistant = (voiceId: string) => {
         },
       ],
     },
+    //@ts-expect-error wrong value define
+    clientMessages: [],
+    //@ts-expect-error wrong value define
+    serverMessages: [],
   };
 
   return assistant;

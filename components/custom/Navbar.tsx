@@ -26,62 +26,21 @@ import {
 } from "@/components/ui/Drawer";
 import {
   AlignRight,
-  AudioLines,
   BadgeCheckIcon,
-  CircleDollarSign,
   Crown,
-  FolderKanban,
-  Handshake,
-  House,
   Rocket,
   Sprout,
-  UserRoundPlus,
   X,
 } from "lucide-react";
-import { JSX, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Loading from "./Loading";
 import { toast } from "sonner";
 import { error as errorMessage } from "@/constants/message";
 import { Badge } from "../ui/Badge";
 import { useAuth } from "@clerk/nextjs";
-import { plans } from "@/constants";
+import { navLinks, plans } from "@/constants";
 import { Plans } from "@/types";
 import { Button } from "../ui/Button";
-
-interface NavLink {
-  label: string;
-  href: string;
-  icon: JSX.Element;
-  admin?: boolean;
-  exact?: boolean;
-}
-
-const navLinks: NavLink[] = [
-  {
-    href: "/admin",
-    label: "Manage",
-    icon: <FolderKanban size="20" />,
-    admin: true,
-  },
-  { href: "/", label: "Home", icon: <House size="20" /> },
-  { href: "/voices", label: "Voices Library", icon: <AudioLines size="20" /> },
-  {
-    label: "Companions",
-    href: "/companions",
-    icon: <Handshake size="20" />,
-    exact: true,
-  },
-  {
-    label: "New Companions",
-    href: "/companions/new",
-    icon: <UserRoundPlus size="20" />,
-  },
-  {
-    label: "Subscription",
-    href: "/subscription",
-    icon: <CircleDollarSign size="20" />,
-  },
-];
 
 const Navbar = () => {
   const path = usePathname();
@@ -160,30 +119,32 @@ const Navbar = () => {
   }
 
   function renderNavLinks(isDrawer = false) {
-    return navLinks.map(({ href, icon, label, admin, exact }) => {
-      const className = cn(
-        isDrawer ? "my-3 flex items-center gap-2 text-base" : "",
-        (path === href ||
-          (href !== "/" && path.startsWith(href + "/") && !exact)) &&
-          "text-primary font-semibold",
-      );
+    return Object.values(navLinks).map(
+      ({ href, icon, label, admin, exact }) => {
+        const className = cn(
+          isDrawer ? "my-3 flex items-center gap-2 text-base" : "",
+          (path === href ||
+            (href !== "/" && path.startsWith(href + "/") && !exact)) &&
+            "text-primary font-semibold",
+        );
 
-      if ((!user && admin) || (user && admin && !isAdmin)) {
-        return null;
-      }
+        if ((!user && admin) || (user && admin && !isAdmin)) {
+          return null;
+        }
 
-      return (
-        <Link
-          key={label}
-          href={href}
-          className={className}
-          onClick={isDrawer ? () => setOpen(false) : undefined}
-        >
-          {isDrawer ? icon : ""}
-          {label}
-        </Link>
-      );
-    });
+        return (
+          <Link
+            key={label}
+            href={href}
+            className={className}
+            onClick={isDrawer ? () => setOpen(false) : undefined}
+          >
+            {isDrawer ? icon : ""}
+            {label}
+          </Link>
+        );
+      },
+    );
   }
 
   return (

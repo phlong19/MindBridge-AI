@@ -25,7 +25,7 @@ const CompanionCard = ({
       style={{ backgroundColor: color, filter: hover ? "invert(1)" : "" }}
       className="companion-card transition-all duration-300"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between">
         <div className="subject-badge">{subject}</div>
 
         <button
@@ -44,7 +44,9 @@ const CompanionCard = ({
       </div>
 
       <h2 className="text-2xl font-bold">{name}</h2>
-      <p className="text-sm">{topic}</p>
+      <p className="line-clamp-3 overflow-hidden text-sm text-ellipsis">
+        {topic}
+      </p>
       <div className="flex items-center gap-2">
         <Image
           src="/icons/clock.svg"

@@ -10,7 +10,7 @@ function GoBackButton({ className }: { className?: string }) {
 
   return (
     <Button
-      className={cn("!px-0", className)}
+      className={cn("w-fit !px-0", className)}
       onClick={() => router.back()}
       variant="link"
     >
