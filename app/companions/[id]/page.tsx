@@ -1,29 +1,37 @@
 import { RedirectWithToast } from "@/components/custom/ClientErrorToast";
 import CompanionInterlink from "@/components/custom/CompanionInterlink";
-import { getCompanion } from "@/lib/services/companion";
+import { getCompanion, getLastUserSession } from "@/lib/services/companion";
 import { getSubjectColor } from "@/lib/utils";
 import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { error as errorMessage } from "@/constants/message";
-import GoBackButton from "@/components/custom/GoBackButton";
 import { navLinks } from "@/constants";
+import { Badge } from "@/components/ui/Badge";
+import GoBackWrapper from "@/components/custom/GoBackButton";
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
 const Page = async ({ params }: Props) => {
-  const { id } = await params;
-  const { companion, error } = await getCompanion(id);
   const user = await currentUser();
 
   if (!user) redirect(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!);
-  if (!companion || error) {
+
+  const { id } = await params;
+  const { companion, error } = await getCompanion(id, user.id);
+  const {
+    data,
+    error: fetchSessionError,
+    errorDescription,
+  } = await getLastUserSession(id, user.id);
+
+  if (!data || !companion || error || fetchSessionError) {
     return (
       <RedirectWithToast
         error={errorMessage.fetchFail}
-        errorDescription={error}
+        errorDescription={error || errorDescription || ""}
         delay={300}
         redirectTo={navLinks.companions.href}
       />
@@ -34,7 +42,7 @@ const Page = async ({ params }: Props) => {
 
   return (
     <main>
-      <GoBackButton className="justify-start" />
+      <GoBackWrapper className="justify-start" />
       <article className="rounded-border flex justify-between gap-4 p-6 max-md:flex-col">
         <div className="flex items-center justify-start gap-4">
           <div
@@ -52,7 +60,17 @@ const Page = async ({ params }: Props) => {
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <p className="text-xl font-bold">{name}</p>
-              <div className="subject-badge max-sm:hidden">{subject}</div>
+              <Badge
+                variant="outline"
+                className="!max-h-7 !self-stretch rounded-4xl px-2.5 capitalize max-sm:hidden"
+              >
+                {subject}
+              </Badge>
+              {companion.isPublish && (
+                <Badge className="max-h-7 !self-stretch !rounded-4xl max-sm:hidden">
+                  Community
+                </Badge>
+              )}
             </div>
 
             <p className="text-md">{topic}</p>
@@ -64,7 +82,10 @@ const Page = async ({ params }: Props) => {
       </article>
       <CompanionInterlink
         {...companion}
+        fetchedMessages={data?.messages}
+        sessionId={data?.id}
         companionId={id}
+        userId={user.id}
         userImage={user.imageUrl}
         userName={user.firstName ?? user.lastName ?? user.username ?? "User"}
       />

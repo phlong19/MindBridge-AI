@@ -55,6 +55,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import ChevronUpDown from "./SortingChevrons";
 import { Input } from "../ui/Input";
 import { Voice } from "@/types";
+import { Combobox } from "../ui/Combobox";
 
 interface Props {
   data: Voice[];
@@ -62,6 +63,7 @@ interface Props {
 }
 
 function VoiceTable({ data, lastUpdated }: Props) {
+  const [isOpen, setIsOpen] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
   const [currentPlayingUrl, setCurrentPlayingUrl] = useState<string | null>(
     null,
@@ -72,6 +74,19 @@ function VoiceTable({ data, lastUpdated }: Props) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const accentList = useMemo(() => {
+    return Array.from(
+      new Map(
+        data
+          .filter((i): i is Voice & { accent: string } => !!i.accent)
+          .map(({ accent }) => [
+            accent,
+            { label: accent, value: accent.toLowerCase() },
+          ]),
+      ).values(),
+    );
+  }, [data]);
 
   const columns: ColumnDef<Voice>[] = useMemo(
     () => [
@@ -207,6 +222,12 @@ function VoiceTable({ data, lastUpdated }: Props) {
   });
 
   const totalLength = data.length;
+  const currentGenderFilter = table
+    .getColumn("gender")
+    ?.getFilterValue() as string;
+  const currentAccentFilter = table
+    .getColumn("accent")
+    ?.getFilterValue() as string;
 
   function updateNameFilter(query?: string) {
     const value = query ?? "";
@@ -214,23 +235,73 @@ function VoiceTable({ data, lastUpdated }: Props) {
     table.getColumn("name")?.setFilterValue(value);
   }
 
+  function updateAccentFilter(query?: string) {
+    table.getColumn("accent")?.setFilterValue(query);
+  }
+
+  function updateGenderFilter(query?: string) {
+    console.log(query, currentGenderFilter);
+    const newValue = query === currentGenderFilter ? "" : query;
+
+    table.getColumn("gender")?.setFilterValue(newValue);
+  }
+
   return (
     <div>
-      <TypographyH3>Available voices</TypographyH3>
-      {/* synced to db */}
-      <div className="flex w-full flex-col items-center justify-between max-lg:items-start lg:flex-row">
-        <TypographyP className="text-muted-foreground !my-3">
+      <div>
+        <TypographyH3>Available voices</TypographyH3>
+
+        <TypographyP className="text-muted-foreground !mt-0 !mb-3">
           Last updated at {lastUpdated}
         </TypographyP>
-        <div className="flex w-full items-center gap-3 lg:max-w-md">
-          {/* filter */}
-          <div className="relative grow py-4">
+      </div>
+      <div className="flex w-full flex-col items-center gap-2 md:mb-3 md:flex-row">
+        {/* filter & search */}
+        <div className="flex w-full items-center gap-2">
+          {/* accent */}
+          <div className="grow">
+            <Combobox
+              clearable
+              data={accentList}
+              updateFilter={updateAccentFilter}
+              currentValue={currentAccentFilter}
+            />
+          </div>
+          {/* gender */}
+          <div className="w-[150px] min-w-[150px] md:w-[150px] md:min-w-[150px]">
+            <Select
+              key={currentGenderFilter}
+              onValueChange={updateGenderFilter}
+              onOpenChange={setIsOpen}
+              value={currentGenderFilter}
+            >
+              <SelectTrigger isOpen={isOpen}>
+                <SelectValue placeholder="Select gender" />
+              </SelectTrigger>
+              <SelectContent>
+                {["male", "female"].map((gender) => (
+                  <SelectItem
+                    className="capitalize"
+                    key={gender}
+                    value={gender}
+                  >
+                    {gender}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="flex w-full grow items-center gap-2 max-md:mb-2.5">
+          {/* search input */}
+          <div className="relative grow min-xl:w-full">
             <Input
               placeholder="Filter by name..."
               value={nameFilter}
               onChange={(e) => updateNameFilter(e.target.value)}
             />
-            {nameFilter.length ? (
+            {!!nameFilter.length && (
               <Tooltip>
                 <TooltipTrigger className="absolute top-1/2 right-[1px] -translate-y-1/2 rounded-l-[0]">
                   <div
@@ -242,8 +313,6 @@ function VoiceTable({ data, lastUpdated }: Props) {
                 </TooltipTrigger>
                 <TooltipContent>Clear</TooltipContent>
               </Tooltip>
-            ) : (
-              ""
             )}
           </div>
           {/* columns visibility */}
@@ -328,7 +397,7 @@ function VoiceTable({ data, lastUpdated }: Props) {
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={5}>
+            <TableCell colSpan={6}>
               <div className="flex flex-col items-center justify-between px-2 max-md:gap-3 max-md:p-0 max-sm:items-start md:flex-row">
                 <div className="text-muted-foreground flex-1 text-sm max-sm:self-start">
                   Total {totalLength} items. Showing{" "}

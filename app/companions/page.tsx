@@ -1,6 +1,4 @@
 import { getCompanionList } from "@/lib/services/companion";
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 // import {
 //   Pagination,
 //   PaginationContent,
@@ -19,22 +17,23 @@ import { error as errorMessage } from "@/constants/message";
 import { SearchParams } from "@/types";
 
 const Page = async ({ searchParams }: SearchParams) => {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!);
-  }
   const params = await searchParams;
   const { limit, page, topic, subject } = params;
 
   const currentPage = Number(page) || undefined;
   const itemPerPage = Number(limit) || undefined;
 
-  const { data, error, count, errorDescription } = await getCompanionList({
+  // TODO: add new tab for get authorized list
+  const payload = {
     limit: itemPerPage,
     page: currentPage,
     subject,
     topic,
+  };
+
+  const { data, error, count, errorDescription } = await getCompanionList({
+    ...payload,
+    authorized: true,
   });
 
   return (

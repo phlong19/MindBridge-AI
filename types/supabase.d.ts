@@ -46,6 +46,7 @@ export type Database = {
           duration: number | null;
           gender: boolean | null;
           id: string;
+          isPublish: boolean | null;
           name: string | null;
           photoUrl: string | null;
           slug: string | null;
@@ -60,6 +61,7 @@ export type Database = {
           duration?: number | null;
           gender?: boolean | null;
           id?: string;
+          isPublish?: boolean | null;
           name?: string | null;
           photoUrl?: string | null;
           slug?: string | null;
@@ -74,6 +76,7 @@ export type Database = {
           duration?: number | null;
           gender?: boolean | null;
           id?: string;
+          isPublish?: boolean | null;
           name?: string | null;
           photoUrl?: string | null;
           slug?: string | null;
@@ -97,18 +100,24 @@ export type Database = {
           companion_id: string | null;
           created_at: string;
           id: number;
+          isPublish: boolean | null;
+          messages: string | null;
           user_id: string | null;
         };
         Insert: {
           companion_id?: string | null;
           created_at?: string;
           id?: number;
+          isPublish?: boolean | null;
+          messages?: string | null;
           user_id?: string | null;
         };
         Update: {
           companion_id?: string | null;
           created_at?: string;
           id?: number;
+          isPublish?: boolean | null;
+          messages?: string | null;
           user_id?: string | null;
         };
         Relationships: [

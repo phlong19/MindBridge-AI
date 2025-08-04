@@ -28,6 +28,9 @@ export const subjectsColors = {
   economics: "#C8FFDF",
 };
 
+export const defaultAvatar =
+  "https://img.clerk.com/eyJ0eXBlIjoiZGVmYXVsdCIsImlpZCI6Imluc18yejBaUzMzRUpzMWtKeHRUMmxsSzF6V2FSd3kiLCJyaWQiOiJ1c2VyXzJ6UmxLeklCN1QzTzJ0SzdWWlVUSVNFYU82aiJ9?width=160";
+
 // prettier-ignore
 type Page = 'manage' | 'home' | 'voices' | 'companions' | 'newCompanion' | 'myJourney' | 'pricing';
 
@@ -49,6 +52,10 @@ export const navLinks: Record<Page, NavLink> = {
     href: "/companions",
     icon: <Handshake size="20" />,
     exact: true,
+    // TODO: add new pages
+    // children: [
+    //   {href:'/companions',label:"Community companions",icon:'',}
+    // ]
   },
   newCompanion: {
     label: "New Companions",

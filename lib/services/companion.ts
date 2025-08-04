@@ -36,24 +36,30 @@ export async function getCompanionList({
   page = 1,
   subject,
   topic,
+  authorized = false,
 }: GetAllCompanions) {
-  const { userId } = await auth();
-
   const supabase = createSupabaseClient();
   // pagination
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
-  if (!userId) {
-    return { error: errorMessage.notAuthenticated, errorDescription: "" };
-  }
-
   let query = supabase
     .from("companions")
     .select("*", { count: "exact" })
-    .eq("author", userId)
     .range(from, to)
     .limit(limit);
+
+  if (authorized) {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return { error: errorMessage.notAuthenticated, errorDescription: "" };
+    }
+
+    query = query.eq("author", userId);
+  } else {
+    query = query.eq("isPublish", true);
+  }
 
   if (subject) {
     query = query.ilike("subject", `%${subject}%`);
@@ -74,35 +80,56 @@ export async function getCompanionList({
 //#endregion
 
 //#region get detail
-export async function getCompanion(id: string) {
+export async function getCompanion(id: string, userId?: string) {
   const supabase = createSupabaseClient();
 
   const { data, error } = await supabase
     .from("companions")
     .select()
-    .eq("id", id);
+    .eq("id", id)
+    .limit(1)
+    .single();
 
   if (error && !data) {
     console.log(error.message);
     return { error: errorMessage.getDetailFail };
   }
 
-  return { companion: data[0] };
+  if (!data.isPublish && data.author !== userId) {
+    return { error: errorMessage.notAuthorized };
+  }
+
+  return { companion: data };
 }
 //#endregion
 
 //#region save session history
-export async function saveSessionHistory(companionId: string) {
-  const { userId } = await auth();
-
+export async function saveSessionHistory(
+  companionId: string,
+  isPublish: boolean = false,
+  messages: string,
+  userId: string,
+  sessionId: number,
+) {
   const supabase = createSupabaseClient();
+
+  console.log({
+    id: sessionId,
+    companion_id: companionId,
+    user_id: userId,
+    messages,
+    isPublish,
+  });
 
   const { data, error } = await supabase.from("session-history").upsert(
     {
+      id: sessionId,
       companion_id: companionId,
       user_id: userId,
+      messages,
+      isPublish,
     },
-    { onConflict: "companion_id,user_id" },
+    { onConflict: "id" },
   );
 
   if (error) {
@@ -124,6 +151,7 @@ export async function getSessionHistories(limit: number) {
   const { data, error } = await supabase
     .from("session-history")
     .select("companion: companion_id (*)")
+    .eq("isPublish", true)
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -164,3 +192,26 @@ export async function getUserSessionHistories(
   return data.map(({ companion }) => companion);
 }
 //#endregion
+
+//#region get last session
+export async function getLastUserSession(companionId: string, userId: string) {
+  const supabase = createSupabaseClient();
+
+  const { data, error: error } = await supabase
+    .from("session-history")
+    .select("id, messages")
+    .eq("user_id", userId!)
+    .eq("companion_id", companionId)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.log(error.message);
+    return {
+      error: errorMessage.fetchFail,
+      errorDescription: error.message,
+    };
+  }
+
+  return { data };
+}

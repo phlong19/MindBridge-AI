@@ -33,6 +33,10 @@ import { Voice, VoiceGroup } from "@/types";
 import { getToastStyle } from "@/lib/utils";
 import { getVoicesList } from "@/lib/services/voices";
 import FormSkeleton from "./FormSkeleton";
+import { Checkbox } from "../ui/Checkbox";
+import Image from "next/image";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/Tooltip";
+import { TypographyP } from "../ui/Typography";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Please enter your companion's name" }),
@@ -42,6 +46,7 @@ const formSchema = z.object({
   voiceId: z.string().min(1, { message: "Please select a voice model" }),
   style: z.coerce.boolean(),
   duration: z.coerce.number().min(1, { message: "Duration is required" }),
+  isPublish: z.boolean(),
 });
 
 const CompanionForm = () => {
@@ -61,6 +66,7 @@ const CompanionForm = () => {
       style: false,
       duration: 15,
       voiceId: "",
+      isPublish: false,
     },
   });
 
@@ -287,6 +293,38 @@ const CompanionForm = () => {
                 <Input type="number" placeholder="Duration (mins)" {...field} />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="isPublish"
+          render={({ field }) => (
+            <FormItem className="flex items-center gap-2">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="flex items-center gap-2.5">
+                <FormLabel>Is publish for Community use?</FormLabel>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Image
+                      src="/icons/circle-question-mark.svg"
+                      height={15}
+                      width={15}
+                      alt="hover helper"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <TypographyP className="text-sm">
+                      Everyone can use this companion using your configurations.
+                    </TypographyP>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </FormItem>
           )}
         />

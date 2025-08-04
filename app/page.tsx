@@ -25,7 +25,7 @@ async function Page() {
 
   return (
     <main>
-      <h1 className="text-2xl underline">Popular Companions</h1>
+      <h1 className="text-2xl underline">Popular Community Companions</h1>
 
       <section className="home-section items-stretch">
         {companions?.length ? (
@@ -45,7 +45,7 @@ async function Page() {
       <section className="home-section mb-8">
         {Array.isArray(recentSessions) && (
           <CompanionsList
-            title="Recent Completed Sessions"
+            title="Recent Completed Publishing Sessions"
             companions={recentSessions}
             className="w-full lg:w-2/3"
           />

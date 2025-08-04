@@ -54,6 +54,11 @@ function CompanionInterlink({
   userName,
   photoUrl,
   duration,
+  fetchedMessages,
+  isPublish,
+  author,
+  userId,
+  sessionId,
 }: CompanionComponentProps) {
   const lottieRef = useRef<LottieRefCurrentProps>(null);
   const [callStatus, setCallStatus] = useState<ECallStatus>(
@@ -61,7 +66,11 @@ function CompanionInterlink({
   );
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [messages, setMessages] = useState<SavedMessage[]>([]);
+  const [messages, setMessages] = useState<SavedMessage[]>(
+    author === userId && fetchedMessages
+      ? (JSON.parse(fetchedMessages) as SavedMessage[])
+      : [],
+  );
 
   useEffect(() => {
     if (lottieRef) {
@@ -73,15 +82,38 @@ function CompanionInterlink({
     }
   });
 
+  // know bugs
+  // 1. has to be second click to really turn on the mic at first time
+  // 2. cannot update messages
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const actions: { event: VapiEventNames; method: (arg0?: any) => void }[] = [
-      { event: "call-start", method: () => setCallStatus(ECallStatus.ACTIVE) },
+      {
+        event: "call-start",
+        method: () => {
+          setMessages([]);
+          setCallStatus(ECallStatus.ACTIVE);
+        },
+      },
       {
         event: "call-end",
         method: () => {
           setCallStatus(ECallStatus.FINISHED);
-          saveSessionHistory(companionId);
+          saveSessionHistory(
+            companionId,
+            isPublish ?? false,
+            JSON.stringify(messages),
+            userId,
+            sessionId,
+          ).then(
+            (res) =>
+              !!res?.error &&
+              toast.error(res.error, {
+                ...getToastStyle("error"),
+                description: res.errorDescription,
+              }),
+          );
         },
       },
       {
@@ -147,14 +179,7 @@ function CompanionInterlink({
       serverMessages: [],
     };
 
-    const call = await vapi.start(
-      configureAssistant(slug!, duration!),
-      assistantOverrides,
-    );
-
-    if (call) {
-      setCallStatus(ECallStatus.ACTIVE);
-    }
+    vapi.start(configureAssistant(slug!, duration!), assistantOverrides);
   }
 
   function handleDisconnect() {

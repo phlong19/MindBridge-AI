@@ -4,6 +4,7 @@ import { Database } from "@/types/supabase";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { Badge } from "../ui/Badge";
 
 type Props = Database["public"]["Tables"]["companions"]["Row"] & {
   color: string;
@@ -17,6 +18,7 @@ const CompanionCard = ({
   name,
   subject,
   topic,
+  isPublish,
 }: Props) => {
   const [hover, setHover] = useState(false);
 
@@ -26,7 +28,10 @@ const CompanionCard = ({
       className="companion-card transition-all duration-300"
     >
       <div className="flex justify-between">
-        <div className="subject-badge">{subject}</div>
+        <div className="flex items-center gap-1">
+          <Badge className="subject-badge bg-black text-white">{subject}</Badge>
+          {isPublish && <Badge className="subject-badge">Community</Badge>}
+        </div>
 
         <button
           type="button"

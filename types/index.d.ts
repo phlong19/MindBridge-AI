@@ -46,6 +46,7 @@ interface GetAllCompanions {
   page?: number;
   subject?: string | string[];
   topic?: string | string[];
+  authorized?: boolean;
 }
 
 interface BuildClient {
@@ -87,6 +88,9 @@ interface CompanionComponentProps extends CompanionRow {
   companionId: string;
   userName: string;
   userImage: string;
+  fetchedMessages: string | null;
+  userId: string;
+  sessionId: number;
 }
 
 interface VoiceGroup {
@@ -106,4 +110,5 @@ interface NavLink {
   icon: JSX.Element;
   admin?: boolean;
   exact?: boolean;
+  children?: NavLink[];
 }

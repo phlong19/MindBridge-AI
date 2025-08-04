@@ -20,4 +20,10 @@ function GoBackButton({ className }: { className?: string }) {
   );
 }
 
-export default GoBackButton;
+function GoBackWrapper({ className }: { className?: string }) {
+  return <GoBackButton className={className} />;
+}
+
+export default GoBackWrapper;
+
+// export default GoBackButton;
