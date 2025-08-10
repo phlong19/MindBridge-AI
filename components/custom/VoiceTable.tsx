@@ -56,6 +56,9 @@ import ChevronUpDown from "./SortingChevrons";
 import { Input } from "../ui/Input";
 import { Voice } from "@/types";
 import { Combobox } from "../ui/Combobox";
+import { toast } from "sonner";
+import { error } from "@/constants/message";
+import { getToastStyle } from "@/lib/utils";
 
 interface Props {
   data: Voice[];
@@ -63,7 +66,6 @@ interface Props {
 }
 
 function VoiceTable({ data, lastUpdated }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
   const [currentPlayingUrl, setCurrentPlayingUrl] = useState<string | null>(
     null,
@@ -88,7 +90,7 @@ function VoiceTable({ data, lastUpdated }: Props) {
     );
   }, [data]);
 
-  const columns: ColumnDef<Voice>[] = useMemo(
+  const columns = useMemo<ColumnDef<Voice>[]>(
     () => [
       {
         accessorKey: "name",
@@ -112,6 +114,7 @@ function VoiceTable({ data, lastUpdated }: Props) {
         cell: ({ getValue }) => (
           <div className="capitalize">{getValue() as string}</div>
         ),
+        filterFn: "equals",
       },
       {
         accessorKey: "accent",
@@ -119,6 +122,7 @@ function VoiceTable({ data, lastUpdated }: Props) {
         cell: ({ getValue }) => (
           <div className="capitalize">{getValue() as string}</div>
         ),
+        filterFn: "equals",
       },
       {
         accessorKey: "style",
@@ -174,6 +178,12 @@ function VoiceTable({ data, lastUpdated }: Props) {
               newAudio.onended = () => {
                 setCurrentPlayingUrl(null);
                 audioRef.current = null;
+              };
+
+              newAudio.onerror = () => {
+                setCurrentPlayingUrl(null);
+                audioRef.current = null;
+                toast.error(error.cantPlayVoicePreview, getToastStyle("error"));
               };
             }
           }
@@ -240,10 +250,7 @@ function VoiceTable({ data, lastUpdated }: Props) {
   }
 
   function updateGenderFilter(query?: string) {
-    console.log(query, currentGenderFilter);
-    const newValue = query === currentGenderFilter ? "" : query;
-
-    table.getColumn("gender")?.setFilterValue(newValue);
+    table.getColumn("gender")?.setFilterValue(query);
   }
 
   return (
@@ -269,27 +276,17 @@ function VoiceTable({ data, lastUpdated }: Props) {
           </div>
           {/* gender */}
           <div className="w-[150px] min-w-[150px] md:w-[150px] md:min-w-[150px]">
-            <Select
-              key={currentGenderFilter}
-              onValueChange={updateGenderFilter}
-              onOpenChange={setIsOpen}
-              value={currentGenderFilter}
-            >
-              <SelectTrigger isOpen={isOpen}>
-                <SelectValue placeholder="Select gender" />
-              </SelectTrigger>
-              <SelectContent>
-                {["male", "female"].map((gender) => (
-                  <SelectItem
-                    className="capitalize"
-                    key={gender}
-                    value={gender}
-                  >
-                    {gender}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Combobox
+              searchable={false}
+              name="gender"
+              data={[
+                { label: "Male", value: "male" },
+                { label: "Female", value: "female" },
+              ]}
+              clearable
+              currentValue={currentGenderFilter}
+              updateFilter={updateGenderFilter}
+            />
           </div>
         </div>
 

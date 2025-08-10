@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { createSupabaseClient } from "../supabase";
 import { error as errorMessage } from "@/constants/message";
 import { CreateCompanion, GetAllCompanions } from "@/types";
+import { features, plansGroup } from "@/constants";
 
 //#region create
 export async function createCompanion(formData: CreateCompanion) {
@@ -214,4 +215,41 @@ export async function getLastUserSession(companionId: string, userId: string) {
   }
 
   return { data };
+}
+//#endregion
+
+//#region permissions
+export async function newCompanionPermissions(): Promise<
+  true | { error: string; errorDescription?: string }
+> {
+  const { userId, has } = await auth();
+  const supabase = createSupabaseClient();
+
+  let limit = 0;
+
+  if (has(plansGroup.ultimate)) {
+    return true;
+  } else if (has({ feature: features.starter.Limit2Companions })) {
+    limit = 2;
+  } else if (has({ feature: features.pro.Limit10Companions })) {
+    limit = 10;
+  }
+
+  const { data, error } = await supabase
+    .from("companions")
+    .select("id", { count: "exact" })
+    .eq("author", userId!);
+
+  if (error) {
+    console.log(error);
+    return { error: errorMessage.fetchFail, errorDescription: error.message };
+  }
+
+  const count = data.length;
+
+  if (count >= limit) {
+    return { error: errorMessage.companionExceed };
+  }
+
+  return true;
 }

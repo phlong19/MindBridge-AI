@@ -20,6 +20,7 @@ interface Props {
   currentValue?: string;
   name?: string;
   clearable?: boolean;
+  searchable?: boolean;
 }
 
 export function Combobox({
@@ -28,6 +29,7 @@ export function Combobox({
   currentValue,
   name = "voice",
   clearable = false,
+  searchable = true,
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -61,7 +63,7 @@ export function Combobox({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">
         <Command>
-          <CommandInput placeholder={`Search ${name}...`} />
+          {searchable && <CommandInput placeholder={`Search ${name}...`} />}
           <CommandList style={{ scrollbarWidth: "thin" }}>
             <CommandEmpty>No {name} found.</CommandEmpty>
             <CommandGroup>
@@ -78,15 +80,15 @@ export function Combobox({
                     updateFilter?.(val === currentValue ? "" : val);
                   }}
                 >
+                  {label}
                   <CheckIcon
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "mr-2 ml-auto h-4 w-4",
                       value === currentValue
                         ? "stroke-white opacity-100"
                         : "opacity-0",
                     )}
                   />
-                  {label}
                 </CommandItem>
               ))}
             </CommandGroup>

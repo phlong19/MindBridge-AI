@@ -26,7 +26,7 @@ import { error as errorMessage, successMessage } from "@/constants/message";
 import { Textarea } from "../ui/Textarea";
 import { createCompanion } from "@/lib/services/companion";
 import { redirect } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import Switch from "../ui/Switch";
 import { Voice, VoiceGroup } from "@/types";
@@ -37,6 +37,7 @@ import { Checkbox } from "../ui/Checkbox";
 import Image from "next/image";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/Tooltip";
 import { TypographyP } from "../ui/Typography";
+import { Pause, Play } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Please enter your companion's name" }),
@@ -53,6 +54,10 @@ const CompanionForm = () => {
   const [isOpen, setIsOpen] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [voices, setVoices] = useState<VoiceGroup>({ male: [], female: [] });
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [currentPlayingUrl, setCurrentPlayingUrl] = useState<string | null>(
+    null,
+  );
   // for real voiceId Vapi use to connect
   const [slug, setSlug] = useState("");
 
@@ -79,6 +84,36 @@ const CompanionForm = () => {
   function showFetchFailToast() {
     return toast.error(errorMessage.fetchFail, getToastStyle("error"));
   }
+
+  const playingVoicePreview = (url: string | null) => {
+    if (!url) return;
+    const isPlaying = url === currentPlayingUrl;
+    if (isPlaying) {
+      audioRef.current?.pause();
+      setCurrentPlayingUrl(null);
+      audioRef.current = null;
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+
+      const newAudio = new Audio(url);
+      audioRef.current = newAudio;
+      newAudio.play();
+      setCurrentPlayingUrl(url);
+
+      newAudio.onended = () => {
+        setCurrentPlayingUrl(null);
+        audioRef.current = null;
+      };
+
+      newAudio.onerror = () => {
+        setCurrentPlayingUrl(null);
+        audioRef.current = null;
+        toast.error(errorMessage.cantPlayVoicePreview, getToastStyle("error"));
+      };
+    }
+  };
 
   useEffect(() => {
     async function getVoicesAndGroup() {
@@ -271,10 +306,29 @@ const CompanionForm = () => {
                     <SelectValue placeholder="Select voice model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {filteredVoices.map(({ name, id }) => (
-                      <SelectItem key={id} value={id}>
-                        {name}
-                      </SelectItem>
+                    {filteredVoices.map(({ name, id, previewUrl }) => (
+                      <div key={id} className="group relative">
+                        <SelectItem
+                          value={id}
+                          className="group-hover:bg-primary pl-9 transition-colors duration-75 group-hover:text-white"
+                        >
+                          {name}
+                        </SelectItem>
+                        <Button
+                          variant="outline"
+                          type="button"
+                          size="sm"
+                          className="hover: absolute top-1/2 left-1 size-6 -translate-y-1/2"
+                          aria-label={`Play sample for ${name} voice`}
+                          onClick={() => playingVoicePreview(previewUrl)}
+                        >
+                          {currentPlayingUrl === previewUrl ? (
+                            <Pause className="size-3.5" />
+                          ) : (
+                            <Play className="size-3.5" />
+                          )}
+                        </Button>
+                      </div>
                     ))}
                   </SelectContent>
                 </Select>

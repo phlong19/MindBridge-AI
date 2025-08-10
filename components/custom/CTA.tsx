@@ -3,10 +3,11 @@ import { Button } from "../ui/Button";
 import Image from "next/image";
 import Link from "next/link";
 import { navLinks } from "@/constants";
+import { cn } from "@/lib/utils";
 
-const CTA = () => {
+const CTA = ({ className }: { className?: string }) => {
   return (
-    <section className="cta-section">
+    <section className={cn("cta-section", className)}>
       <div className="cta-badge">Learning as the way you want</div>
       <h2 className="text-2xl font-bold">
         Build and Personalize Learning Companion

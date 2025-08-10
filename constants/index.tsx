@@ -1,14 +1,47 @@
 import { NavLink, Plans } from "@/types";
 import {
   AudioLines,
+  Box,
   CircleDollarSign,
   FolderKanban,
   Handshake,
   House,
+  Rss,
   UserRoundPlus,
   Waypoints,
 } from "lucide-react";
 export const plans: Plans[] = ["starter", "pro", "ultimate"];
+export const plansGroup: Record<Plans, { plan: Plans }> = {
+  ultimate: {
+    plan: "ultimate",
+  },
+  pro: {
+    plan: "pro",
+  },
+  starter: {
+    plan: "starter",
+  },
+};
+
+export const features = {
+  starter: {
+    Limit2Companions: "2_ai_companions",
+    Monthly10Conversations: "10_conversations_month",
+    BasicRecap: "basic_session_recaps",
+  },
+  pro: {
+    Limit10Companions: "10_active_companions",
+    UnlimitedConversations: "unlimited_conversations",
+    CanSaveSessionsHistory: "save_sessions_history",
+    InlineQuizzesAndRecaps: "inline_quizzes_recaps",
+    MonthlyReports: "monthly_progress_reports",
+  },
+  ultimate: {
+    UnlimitedCompanions: "unlimited_companions",
+    DashboardSupport: "full_control_dashboard",
+    DailyReminders: "daily_learning_reminders",
+  },
+};
 
 export const subjects = [
   "maths",
@@ -49,13 +82,23 @@ export const navLinks: Record<Page, NavLink> = {
   },
   companions: {
     label: "Companions",
-    href: "/companions",
+    href: "#",
     icon: <Handshake size="20" />,
     exact: true,
-    // TODO: add new pages
-    // children: [
-    //   {href:'/companions',label:"Community companions",icon:'',}
-    // ]
+    children: [
+      {
+        href: "/companions/community",
+        label: "Community companions",
+        icon: <Rss />,
+        exact: true,
+      },
+      {
+        href: "/companions",
+        label: "Your companions",
+        icon: <Box />,
+        exact: true,
+      },
+    ],
   },
   newCompanion: {
     label: "New Companions",

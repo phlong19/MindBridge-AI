@@ -7,12 +7,12 @@ import { toast } from "sonner";
 
 interface MessageProps {
   error: string;
-  errorDescription: string;
+  errorDescription?: string;
 }
 
 interface RedirectWithDelayProps extends MessageProps {
   redirectTo: string;
-  delay: number;
+  delay?: number;
 }
 
 export const ClientErrorToast = ({ error, errorDescription }: MessageProps) => {
