@@ -5,10 +5,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "../ui/Badge";
+// import { toast } from "sonner";
+// import { error } from "@/constants/message";
+// import { getToastStyle } from "@/lib/utils";
+import { savedBookmark } from "@/lib/services/bookmarks";
+import { ClientErrorToast } from "./ClientErrorToast";
 
 type Props = Database["public"]["Tables"]["companions"]["Row"] & {
   color: string;
   slug?: string;
+  userId?: string;
 };
 
 const CompanionCard = ({
@@ -21,12 +27,25 @@ const CompanionCard = ({
   isPublish,
 }: Props) => {
   const [hover, setHover] = useState(false);
+  const [errorResponse, setErrorResponse] = useState<{
+    error: string;
+    errorDescription?: string;
+  }>({ error: "", errorDescription: "" });
+
+  async function onBookmark() {
+    const { error, errorDescription } = await savedBookmark(id);
+    setErrorResponse({ error, errorDescription });
+  }
 
   return (
     <article
       style={{ backgroundColor: color, filter: hover ? "invert(1)" : "" }}
       className="companion-card transition-all duration-300"
     >
+      <ClientErrorToast
+        error={errorResponse.error}
+        errorDescription={errorResponse.errorDescription}
+      />
       <div className="flex justify-between">
         <div className="flex items-center gap-1">
           <Badge className="subject-badge bg-black text-white">{subject}</Badge>
@@ -38,6 +57,7 @@ const CompanionCard = ({
           title="Bookmark"
           aria-label="Bookmark button"
           className="companion-bookmark"
+          onClick={() => onBookmark()}
         >
           <Image
             src="/icons/bookmark.svg"
