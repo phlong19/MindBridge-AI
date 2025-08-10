@@ -17,15 +17,13 @@ async function Page() {
   } = await getCompanionList({ limit: 3 });
   const recentSessions = await getSessionHistories(10);
 
-  if (error && !Array.isArray(recentSessions)) {
-    return (
-      <ClientErrorToast error={error} errorDescription={errorDescription} />
-    );
-  }
-
   return (
     <main>
       <h1 className="text-2xl underline">Popular Community Companions</h1>
+
+      {error && !Array.isArray(recentSessions) && (
+        <ClientErrorToast error={error} errorDescription={errorDescription} />
+      )}
 
       <section className="home-section items-stretch">
         {companions?.length ? (
@@ -50,7 +48,7 @@ async function Page() {
             className="w-full lg:w-2/3"
           />
         )}
-        <CTA />
+        <CTA className={!Array.isArray(recentSessions) ? "!w-full" : ""} />
       </section>
     </main>
   );

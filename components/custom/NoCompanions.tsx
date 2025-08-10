@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "../ui/Button";
 import { TypographyH3 } from "../ui/Typography";
 import { navLinks } from "@/constants";
+import { UserPlus } from "lucide-react";
 
 const NoCompanions = () => {
   return (
@@ -11,7 +12,9 @@ const NoCompanions = () => {
       </TypographyH3>
 
       <Link href={navLinks.newCompanion.href}>
-        <Button>Add a new companion</Button>
+        <Button>
+        <UserPlus />
+          Add a new companion</Button>
       </Link>
     </div>
   );

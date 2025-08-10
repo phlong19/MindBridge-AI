@@ -19,6 +19,8 @@ export const error = {
   serverError: "Server encountered an error. Please try again later.",
   resourceNotFound: "Requested resource not found.",
   permissionDenied: "Permission denied. You do not have the necessary rights.",
+  companionExceed:
+    "You’ve reached the maximum number of companions allowed for your current plan. Please upgrade your plan to add more.",
   dataConflict: "Data conflict detected. Please resolve and try again.",
   timeoutError: "Request timed out. Please try again.",
   invalidTokenContainSpace:

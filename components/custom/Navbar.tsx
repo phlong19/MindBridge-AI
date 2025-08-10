@@ -27,6 +27,7 @@ import {
 import {
   AlignRight,
   BadgeCheckIcon,
+  ChevronDown,
   Crown,
   Rocket,
   Sprout,
@@ -41,10 +42,12 @@ import { useAuth } from "@clerk/nextjs";
 import { navLinks, plans } from "@/constants";
 import { Plans } from "@/types";
 import { Button } from "../ui/Button";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 
 const Navbar = () => {
   const path = usePathname();
   const [open, setOpen] = useState(false);
+  const [isOpeningChildren, setIsOpeningChildren] = useState("");
   const { user, isLoaded, isSignedIn } = useUser();
   const [isClient, setIsClient] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -120,23 +123,70 @@ const Navbar = () => {
 
   function renderNavLinks(isDrawer = false) {
     return Object.values(navLinks).map(
-      ({ href, icon, label, admin, exact }) => {
-        const className = cn(
-          isDrawer ? "my-3 flex items-center gap-2 text-base" : "",
-          (path === href ||
-            (href !== "/" && path.startsWith(href + "/") && !exact)) &&
-            "text-primary font-semibold",
-        );
+      ({ href, icon, label, admin, exact, children }) => {
+        const getClassName = (exact?: boolean, level = 1, child?: string) => {
+          const link = level > 1 ? child : href;
+          return cn(
+            isDrawer ? "my-3 flex items-center gap-2 text-base" : "",
+            (path === link ||
+              (link !== "/" && path.startsWith(link + "/") && !exact)) &&
+              "text-primary font-semibold",
+          );
+        };
 
         if ((!user && admin) || (user && admin && !isAdmin)) {
           return null;
+        }
+
+        if (children) {
+          return (
+            <Popover
+              key={label}
+              onOpenChange={() =>
+                setIsOpeningChildren((prev) => (prev !== href ? href : ""))
+              }
+              open={isOpeningChildren === href}
+            >
+              <PopoverTrigger asChild>
+                <Link
+                  href={href}
+                  key={label}
+                  className="flex items-center gap-1"
+                >
+                  <ChevronDown
+                    size={18}
+                    className={`${isOpeningChildren === href ? "rotate-180" : ""} transition-all duration-300`}
+                  />
+                  {isDrawer ? icon : ""}
+                  {label}
+                </Link>
+              </PopoverTrigger>
+
+              <PopoverContent className="flex w-[260px] flex-col gap-2">
+                {children.map((child) => (
+                  <Link
+                    href={child.href}
+                    key={child.label}
+                    className={cn(
+                      getClassName(child.exact, 2, child.href),
+                      "hover:text-primary transition-all duration-200 hover:font-semibold",
+                    )}
+                    onClick={isDrawer ? () => setOpen(false) : undefined}
+                  >
+                    {isDrawer ? child.icon : ""}
+                    {child.label}
+                  </Link>
+                ))}
+              </PopoverContent>
+            </Popover>
+          );
         }
 
         return (
           <Link
             key={label}
             href={href}
-            className={className}
+            className={cn(getClassName(exact), "hover:text-primary")}
             onClick={isDrawer ? () => setOpen(false) : undefined}
           >
             {isDrawer ? icon : ""}
