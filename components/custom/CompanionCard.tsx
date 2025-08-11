@@ -9,7 +9,9 @@ import { Badge } from "../ui/Badge";
 // import { error } from "@/constants/message";
 // import { getToastStyle } from "@/lib/utils";
 import { savedBookmark } from "@/lib/services/bookmarks";
-import { ClientErrorToast } from "./ClientErrorToast";
+import { ClientToast } from "./ClientToast";
+import { ToastTypes } from "@/lib/utils";
+import { Bookmark } from "lucide-react";
 
 type Props = Database["public"]["Tables"]["companions"]["Row"] & {
   color: string;
@@ -28,13 +30,18 @@ const CompanionCard = ({
 }: Props) => {
   const [hover, setHover] = useState(false);
   const [errorResponse, setErrorResponse] = useState<{
-    error: string;
-    errorDescription?: string;
-  }>({ error: "", errorDescription: "" });
+    type: ToastTypes;
+    title: string;
+    message?: string;
+  }>({
+    type: "error",
+    title: "",
+    message: "",
+  });
 
   async function onBookmark() {
-    const { error, errorDescription } = await savedBookmark(id);
-    setErrorResponse({ error, errorDescription });
+    const response = await savedBookmark(id);
+    setErrorResponse(response);
   }
 
   return (
@@ -42,14 +49,13 @@ const CompanionCard = ({
       style={{ backgroundColor: color, filter: hover ? "invert(1)" : "" }}
       className="companion-card transition-all duration-300"
     >
-      <ClientErrorToast
-        error={errorResponse.error}
-        errorDescription={errorResponse.errorDescription}
-      />
+      <ClientToast {...errorResponse} />
       <div className="flex justify-between">
         <div className="flex items-center gap-1">
           <Badge className="subject-badge bg-black text-white">{subject}</Badge>
-          {isPublish && <Badge className="subject-badge">Community</Badge>}
+          {isPublish && (
+            <Badge className="subject-badge !bg-green-600">Community</Badge>
+          )}
         </div>
 
         <button
@@ -59,12 +65,7 @@ const CompanionCard = ({
           className="companion-bookmark"
           onClick={() => onBookmark()}
         >
-          <Image
-            src="/icons/bookmark.svg"
-            alt="bookmark"
-            width={12.5}
-            height={15}
-          />
+          <Bookmark color="white" size={16} aria-label="bookmark icon" />
         </button>
       </div>
 

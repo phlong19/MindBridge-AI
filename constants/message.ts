@@ -39,6 +39,7 @@ export const successMessage = {
   syncComplete: "A syncing process was done successfully!",
   createSuccess: "A new companion created successfully.",
   saveSuccess: "Changes have been saved successfully.",
+  bookmarked: "Companion bookmarked successfully!",
   updateSuccess: "Update completed successfully.",
   deleteSuccess: "Item deleted successfully.",
   uploadSuccess: "File uploaded successfully.",

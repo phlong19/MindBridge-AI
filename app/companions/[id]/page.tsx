@@ -1,4 +1,4 @@
-import { RedirectWithToast } from "@/components/custom/ClientErrorToast";
+import { RedirectWithToast } from "@/components/custom/ClientToast";
 import CompanionInterlink from "@/components/custom/CompanionInterlink";
 import { getCompanion, getLastUserSession } from "@/lib/services/companion";
 import { getSubjectColor } from "@/lib/utils";
@@ -30,8 +30,8 @@ const Page = async ({ params }: Props) => {
   if (!data || !companion || error || fetchSessionError) {
     return (
       <RedirectWithToast
-        error={errorMessage.fetchFail}
-        errorDescription={error || errorDescription || ""}
+        title={errorMessage.fetchFail}
+        message={error || errorDescription}
         delay={300}
         redirectTo={navLinks.companions.href}
       />

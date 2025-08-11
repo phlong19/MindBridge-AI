@@ -37,30 +37,39 @@ export async function getCompanionList({
   page = 1,
   subject,
   topic,
-  authorized = false,
+  authenticated = true,
+  authorized = true,
 }: GetAllCompanions) {
   const supabase = createSupabaseClient();
-  // pagination
+
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
-  let query = supabase
-    .from("companions")
-    .select("*", { count: "exact" })
-    .range(from, to)
-    .limit(limit);
+  let query;
+  let userId: string | null = null;
 
-  if (authorized) {
-    const { userId } = await auth();
+  query = supabase.from("companions");
 
-    if (!userId) {
-      return { error: errorMessage.notAuthenticated, errorDescription: "" };
+  if (authenticated) {
+    const authResult = await auth();
+    userId = authResult?.userId ?? null;
+
+    if (userId) {
+      query = query.select("*, bookmarks(userId)", { count: "exact" });
+
+      if (authorized) {
+        query = query.eq("author", userId);
+      } else {
+        query = query.eq("isPublish", true);
+      }
+    } else {
+      return { error: errorMessage.notAuthenticated };
     }
-
-    query = query.eq("author", userId);
   } else {
-    query = query.eq("isPublish", true);
+    query = query.select("*", { count: "exact" }).eq("isPublish", true);
   }
+
+  query = query.range(from, to).limit(limit);
 
   if (subject) {
     query = query.ilike("subject", `%${subject}%`);
@@ -76,7 +85,11 @@ export async function getCompanionList({
     return { error: errorMessage.fetchFail, errorDescription: error.message };
   }
 
-  return { data, count };
+  return {
+    // @ts-expect-error type error
+    data: data.map((i) => ({ ...i, isBookmarked: i.bookmarks.length })),
+    count,
+  };
 }
 //#endregion
 

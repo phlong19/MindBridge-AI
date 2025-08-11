@@ -1,13 +1,19 @@
+"use server";
+
 import { error as errorMessage, successMessage } from "@/constants/message";
 import { createSupabaseClient } from "../supabase";
 import { auth } from "@clerk/nextjs/server";
+import { ToastTypes } from "../utils";
 
-export async function savedBookmark(companionId: string) {
+export async function savedBookmark(
+  companionId: string,
+): Promise<{ type: ToastTypes; title: string; message?: string }> {
   const { userId } = await auth();
 
   if (!userId) {
     return {
-      error: errorMessage.notAuthenticated,
+      type: "error",
+      title: errorMessage.notAuthenticated,
     };
   }
   const supabase = createSupabaseClient();
@@ -20,17 +26,18 @@ export async function savedBookmark(companionId: string) {
   if (error) {
     console.log(error);
     return {
-      error: errorMessage.cantBookmark,
-      errorDescription: error.message,
+      type: "error",
+      title: errorMessage.cantBookmark,
+      message: error.message,
     };
   }
 
-  // TODO: add type for return right client toast type
   // update bookmarked ui
   // more permission check on features & plans
-  return { error: successMessage.saveSuccess, errorDescription: "ok" };
+  return { type: "success", title: successMessage.bookmarked };
 }
 
+// for my-journey page
 export async function getAllCompanionsFromBookmark(userId: string) {
   const supabase = createSupabaseClient();
 

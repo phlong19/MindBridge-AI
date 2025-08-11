@@ -1,5 +1,5 @@
 import { getSubjectColor } from "@/lib/utils";
-import { ClientErrorToast } from "./ClientErrorToast";
+import { ClientToast } from "./ClientToast";
 import Searchbar from "./Searchbar";
 import SubjectFilter from "./SubjectFilter";
 import CompanionCard from "./CompanionCard";
@@ -32,10 +32,7 @@ const CompanionsListWrapper = ({
       </section>
       <div>
         {error || !data ? (
-          <ClientErrorToast
-            error={error!}
-            errorDescription={errorDescription}
-          />
+          <ClientToast title={error!} message={errorDescription} />
         ) : count === 0 ? (
           <section className="mt-10">
             <TypographyH4 className="text-muted-foreground">

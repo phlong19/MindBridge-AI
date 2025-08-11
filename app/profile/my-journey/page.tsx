@@ -1,4 +1,4 @@
-import { ClientErrorToast } from "@/components/custom/ClientErrorToast";
+import { ClientToast } from "@/components/custom/ClientToast";
 import CompanionsList from "@/components/custom/CompanionsList";
 import NoCompanions from "@/components/custom/NoCompanions";
 import {
@@ -24,6 +24,7 @@ async function page({ searchParams }: SearchParams) {
   const currentPage = Number(page) || undefined;
   const itemPerPage = Number(limit) || undefined;
 
+  // TODO: companion for authen and author
   const {
     data: companions,
     error,
@@ -35,6 +36,8 @@ async function page({ searchParams }: SearchParams) {
     topic,
   });
 
+  // TODO: add one more get list for authen but not author to get all publish bookmarked
+
   const user = await currentUser();
 
   if (!user) redirect(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!);
@@ -42,9 +45,7 @@ async function page({ searchParams }: SearchParams) {
   const sessionsHistory = await getUserSessionHistories(user.id);
 
   if (error) {
-    return (
-      <ClientErrorToast error={error} errorDescription={errorDescription} />
-    );
+    return <ClientToast title={error} message={errorDescription} />;
   }
 
   return (

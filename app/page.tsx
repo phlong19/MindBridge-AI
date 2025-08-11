@@ -6,7 +6,7 @@ import {
   getSessionHistories,
 } from "@/lib/services/companion";
 import { getSubjectColor } from "@/lib/utils";
-import { ClientErrorToast } from "@/components/custom/ClientErrorToast";
+import { ClientToast } from "@/components/custom/ClientToast";
 import NoCompanions from "@/components/custom/NoCompanions";
 
 async function Page() {
@@ -14,7 +14,7 @@ async function Page() {
     data: companions,
     error,
     errorDescription,
-  } = await getCompanionList({ limit: 3 });
+  } = await getCompanionList({ limit: 3, authenticated: false });
   const recentSessions = await getSessionHistories(10);
 
   return (
@@ -22,7 +22,7 @@ async function Page() {
       <h1 className="text-2xl underline">Popular Community Companions</h1>
 
       {error && !Array.isArray(recentSessions) && (
-        <ClientErrorToast error={error} errorDescription={errorDescription} />
+        <ClientToast title={error} message={errorDescription} />
       )}
 
       <section className="home-section items-stretch">

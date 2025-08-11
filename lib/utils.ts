@@ -64,7 +64,7 @@ export const configureAssistant = (slug: string, duration: number) => {
   return assistant;
 };
 
-type ToastTypes =
+export type ToastTypes =
   | "normal"
   | "action"
   | "success"

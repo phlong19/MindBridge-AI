@@ -1,4 +1,4 @@
-import { RedirectWithToast } from "@/components/custom/ClientErrorToast";
+import { RedirectWithToast } from "@/components/custom/ClientToast";
 import CompanionForm from "@/components/custom/CompanionForm";
 import { navLinks } from "@/constants";
 import { newCompanionPermissions } from "@/lib/services/companion";
@@ -16,8 +16,8 @@ async function Page() {
           <RedirectWithToast
             delay={300}
             redirectTo={navLinks.companions.href}
-            error={canCreateCompanion.error}
-            errorDescription={canCreateCompanion.errorDescription}
+            title={canCreateCompanion.error}
+            message={canCreateCompanion.errorDescription}
           />
         )}
       </article>
