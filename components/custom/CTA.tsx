@@ -17,6 +17,7 @@ const CTA = ({ className }: { className?: string }) => {
         voice conversations that feel truly nature and joy.
       </p>
       <Image
+        loading="lazy"
         src="/images/cta.svg"
         alt="cta"
         width={0}

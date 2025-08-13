@@ -19,6 +19,7 @@ const Page = async ({ searchParams }: SearchParams) => {
 
   return (
     <CompanionsListWrapper
+      title="Community companion Library"
       count={count}
       data={data}
       error={error}

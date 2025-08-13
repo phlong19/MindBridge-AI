@@ -3,11 +3,11 @@ import CompanionsList from "@/components/custom/CompanionsList";
 import CTA from "@/components/custom/CTA";
 import {
   getCompanionList,
-  getSessionHistories,
 } from "@/lib/services/companion";
 import { getSubjectColor } from "@/lib/utils";
 import { ClientToast } from "@/components/custom/ClientToast";
 import NoCompanions from "@/components/custom/NoCompanions";
+import { getSessionHistories } from "@/lib/services/sessions-history";
 
 async function Page() {
   const {

@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/Select";
-import { subjects } from "@/constants";
+import { navLinks, subjects } from "@/constants";
 import { error as errorMessage, successMessage } from "@/constants/message";
 import { Textarea } from "../ui/Textarea";
 import { createCompanion } from "@/lib/services/companion";
@@ -82,7 +82,8 @@ const CompanionForm = () => {
   );
 
   function showFetchFailToast() {
-    return toast.error(errorMessage.fetchFail, getToastStyle("error"));
+    toast.error(errorMessage.fetchFail, getToastStyle("error"));
+    return redirect(navLinks.companions.href);
   }
 
   const playingVoicePreview = (url: string | null) => {

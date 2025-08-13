@@ -13,6 +13,28 @@ const bricolage = Bricolage_Grotesque({
 export const metadata: Metadata = {
   title: "MindBridge AI - Your trusted learning companions",
   description: "Real-time AI Teaching / E-Learning Platform",
+  creator: "phl19.dev@gmail.com",
+  keywords: [
+    "AI",
+    "ai",
+    "mentor",
+    "mindbridgeai",
+    "ai learning companions",
+    "voice-based ai tutor",
+    "ai voice learning assistant",
+    "ai study buddy",
+    "virtual learning assistant",
+    "chat with ai companion",
+    "ai-powered voice chat for learning",
+    "ai tutor platform",
+    "stripe ready ai saas",
+    "monetizable ai assistant",
+    "ai learning platform",
+    "voice ai for education",
+    "ai chat for students",
+    "learn with ai",
+  ],
+  category: "AI voice learning assistant",
 };
 
 export default function RootLayout({
