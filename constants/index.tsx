@@ -82,20 +82,20 @@ export const navLinks: Record<Page, NavLink> = {
   },
   companions: {
     label: "Companions",
-    href: "#",
+    href: "/companions",
     icon: <Handshake size="20" />,
     exact: true,
     children: [
       {
         href: "/companions/community",
         label: "Community companions",
-        icon: <Rss />,
+        icon: <Rss size={18} />,
         exact: true,
       },
       {
         href: "/companions",
         label: "Your companions",
-        icon: <Box />,
+        icon: <Box size={18} />,
         exact: true,
       },
     ],
