@@ -1,4 +1,4 @@
-import { ClientErrorToast } from "@/components/custom/ClientErrorToast";
+import { ClientToast } from "@/components/custom/ClientToast";
 import CompanionsList from "@/components/custom/CompanionsList";
 import NoCompanions from "@/components/custom/NoCompanions";
 import {
@@ -8,10 +8,8 @@ import {
   AccordionContent,
 } from "@/components/ui/Accordion";
 import { TypographyP } from "@/components/ui/Typography";
-import {
-  getCompanionList,
-  getUserSessionHistories,
-} from "@/lib/services/companion";
+import { getCompanionList } from "@/lib/services/companion";
+import { getUserSessionHistories } from "@/lib/services/sessions-history";
 import { SearchParams } from "@/types";
 import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
@@ -28,7 +26,21 @@ async function page({ searchParams }: SearchParams) {
     data: companions,
     error,
     errorDescription,
+    count,
   } = await getCompanionList({
+    limit: itemPerPage,
+    page: currentPage,
+    subject,
+    topic,
+  });
+
+  const {
+    count: bookmarkedCount,
+    data: bookmarked,
+    error: getBookmarkError,
+    errorDescription: bookmarkErrorDescription,
+  } = await getCompanionList({
+    authenticated: true,
     limit: itemPerPage,
     page: currentPage,
     subject,
@@ -41,14 +53,15 @@ async function page({ searchParams }: SearchParams) {
 
   const sessionsHistory = await getUserSessionHistories(user.id);
 
-  if (error) {
-    return (
-      <ClientErrorToast error={error} errorDescription={errorDescription} />
-    );
-  }
-
   return (
     <main className="min-lg:w-3/4">
+      {!!error && <ClientToast title={error} message={errorDescription} />}
+      {!!getBookmarkError && (
+        <ClientToast
+          title={getBookmarkError}
+          message={bookmarkErrorDescription}
+        />
+      )}
       <section className="flex items-center justify-between gap-3 max-sm:flex-col">
         <div className="flex items-center gap-3">
           <Image
@@ -126,11 +139,25 @@ async function page({ searchParams }: SearchParams) {
 
           <AccordionItem value="companions">
             <AccordionTrigger className="data-[state=open]:text-primary text-xl font-semibold">
-              My Companions ({companions?.length || 0})
+              My Companions ({count || 0})
             </AccordionTrigger>
             <AccordionContent>
               {companions?.length ? (
                 <CompanionsList companions={companions} title="" />
+              ) : (
+                <NoCompanions />
+              )}
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="bookmarked">
+            <AccordionTrigger className="data-[state=open]:text-primary text-xl font-semibold">
+              Bookmarked Companions ({bookmarkedCount || 0})
+            </AccordionTrigger>
+
+            <AccordionContent>
+              {bookmarked?.length ? (
+                <CompanionsList companions={bookmarked} title="" />
               ) : (
                 <NoCompanions />
               )}

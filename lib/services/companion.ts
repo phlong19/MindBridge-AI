@@ -37,30 +37,39 @@ export async function getCompanionList({
   page = 1,
   subject,
   topic,
-  authorized = false,
+  authenticated = true,
+  authorized = true,
 }: GetAllCompanions) {
   const supabase = createSupabaseClient();
-  // pagination
+
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
-  let query = supabase
-    .from("companions")
-    .select("*", { count: "exact" })
-    .range(from, to)
-    .limit(limit);
+  let query;
+  let userId: string | null = null;
 
-  if (authorized) {
-    const { userId } = await auth();
+  query = supabase.from("companions");
 
-    if (!userId) {
-      return { error: errorMessage.notAuthenticated, errorDescription: "" };
+  if (authenticated) {
+    const authResult = await auth();
+    userId = authResult?.userId ?? null;
+
+    if (userId) {
+      query = query.select("*, bookmarks(userId)", { count: "exact" });
+
+      if (authorized) {
+        query = query.eq("author", userId);
+      } else {
+        query = query.eq("isPublish", true);
+      }
+    } else {
+      return { error: errorMessage.notAuthenticated };
     }
-
-    query = query.eq("author", userId);
   } else {
-    query = query.eq("isPublish", true);
+    query = query.select("*", { count: "exact" }).eq("isPublish", true);
   }
+
+  query = query.range(from, to).limit(limit);
 
   if (subject) {
     query = query.ilike("subject", `%${subject}%`);
@@ -76,7 +85,11 @@ export async function getCompanionList({
     return { error: errorMessage.fetchFail, errorDescription: error.message };
   }
 
-  return { data, count };
+  return {
+    // @ts-expect-error type error
+    data: data.map((i) => ({ ...i, isBookmarked: !!i.bookmarks?.length })),
+    count,
+  };
 }
 //#endregion
 
@@ -101,120 +114,6 @@ export async function getCompanion(id: string, userId?: string) {
   }
 
   return { companion: data };
-}
-//#endregion
-
-//#region save session history
-export async function saveSessionHistory(
-  companionId: string,
-  isPublish: boolean = false,
-  messages: string,
-  userId: string,
-  sessionId: number,
-) {
-  const supabase = createSupabaseClient();
-
-  console.log({
-    id: sessionId,
-    companion_id: companionId,
-    user_id: userId,
-    messages,
-    isPublish,
-  });
-
-  const { data, error } = await supabase.from("session-history").upsert(
-    {
-      id: sessionId,
-      companion_id: companionId,
-      user_id: userId,
-      messages,
-      isPublish,
-    },
-    { onConflict: "id" },
-  );
-
-  if (error) {
-    console.log(error.message);
-    return {
-      error: errorMessage.sessionHistorySaveFail,
-      errorDescription: error.message,
-    };
-  }
-
-  return data;
-}
-//#endregion
-
-//#region get session history
-export async function getSessionHistories(limit: number) {
-  const supabase = createSupabaseClient();
-
-  const { data, error } = await supabase
-    .from("session-history")
-    .select("companion: companion_id (*)")
-    .eq("isPublish", true)
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  if (error) {
-    console.log(error.message);
-    return {
-      error: errorMessage.fetchFail,
-      errorDescription: error.message,
-    };
-  }
-
-  return data.map(({ companion }) => companion);
-}
-//#endregion
-
-//#region get user sessions
-export async function getUserSessionHistories(
-  userId: string,
-  limit: number = 10,
-) {
-  const supabase = createSupabaseClient();
-
-  const { data, error } = await supabase
-    .from("session-history")
-    .select("companion: companion_id (*)")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  if (error) {
-    console.log(error.message);
-    return {
-      error: errorMessage.fetchFail,
-      errorDescription: error.message,
-    };
-  }
-
-  return data.map(({ companion }) => companion);
-}
-//#endregion
-
-//#region get last session
-export async function getLastUserSession(companionId: string, userId: string) {
-  const supabase = createSupabaseClient();
-
-  const { data, error: error } = await supabase
-    .from("session-history")
-    .select("id, messages")
-    .eq("user_id", userId!)
-    .eq("companion_id", companionId)
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    console.log(error.message);
-    return {
-      error: errorMessage.fetchFail,
-      errorDescription: error.message,
-    };
-  }
-
-  return { data };
 }
 //#endregion
 

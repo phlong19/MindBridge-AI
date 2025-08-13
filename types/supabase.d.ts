@@ -39,6 +39,35 @@ export type Database = {
   };
   public: {
     Tables: {
+      bookmarks: {
+        Row: {
+          companionId: string | null;
+          created_at: string;
+          id: number;
+          userId: string | null;
+        };
+        Insert: {
+          companionId?: string | null;
+          created_at?: string;
+          id?: number;
+          userId?: string | null;
+        };
+        Update: {
+          companionId?: string | null;
+          created_at?: string;
+          id?: number;
+          userId?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "bookmarks_companionId_fkey";
+            columns: ["companionId"];
+            isOneToOne: false;
+            referencedRelation: "companions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       companions: {
         Row: {
           author: string | null;

@@ -14,10 +14,12 @@ const Page = async ({ searchParams }: SearchParams) => {
     page: currentPage,
     subject,
     topic,
+    authenticated: false,
   });
 
   return (
     <CompanionsListWrapper
+      title="Community companion Library"
       count={count}
       data={data}
       error={error}

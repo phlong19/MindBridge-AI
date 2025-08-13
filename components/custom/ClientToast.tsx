@@ -1,13 +1,14 @@
 "use client";
 
-import { getToastStyle } from "@/lib/utils";
+import { getToastStyle, ToastTypes } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
 interface MessageProps {
-  error: string;
-  errorDescription?: string;
+  title: string;
+  message?: string;
+  type?: ToastTypes;
 }
 
 interface RedirectWithDelayProps extends MessageProps {
@@ -15,22 +16,26 @@ interface RedirectWithDelayProps extends MessageProps {
   delay?: number;
 }
 
-export const ClientErrorToast = ({ error, errorDescription }: MessageProps) => {
+export const ClientToast = ({
+  title,
+  message,
+  type = "error",
+}: MessageProps) => {
   useEffect(() => {
-    if (error) {
-      toast.error(error, {
-        ...getToastStyle("error"),
-        description: errorDescription,
+    if (title) {
+      toast.error(title, {
+        ...getToastStyle(type),
+        description: message,
       });
     }
-  }, [error, errorDescription]);
+  }, [title, message, type]);
 
   return null;
 };
 
 export const RedirectWithToast = ({
-  error,
-  errorDescription,
+  title,
+  message,
   redirectTo,
   delay = 2000,
 }: RedirectWithDelayProps) => {
@@ -44,5 +49,5 @@ export const RedirectWithToast = ({
     return () => clearTimeout(timer);
   }, [redirectTo, delay, router]);
 
-  return <ClientErrorToast error={error} errorDescription={errorDescription} />;
+  return <ClientToast title={title} message={message} />;
 };

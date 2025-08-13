@@ -14,9 +14,9 @@ import soundWaveAnimation from "@/constants/sound-voice.json";
 import { AssistantOverrides } from "@vapi-ai/web/dist/api";
 import { CompanionComponentProps, SavedMessage } from "@/types";
 import { TypographyP } from "../ui/Typography";
-import { saveSessionHistory } from "@/lib/services/companion";
 import { toast } from "sonner";
 import { error as errorMessage } from "@/constants/message";
+import { saveSessionHistory } from "@/lib/services/sessions-history";
 
 enum ECallStatus {
   INACTIVE = "INACTIVE",
@@ -179,7 +179,11 @@ function CompanionInterlink({
       serverMessages: [],
     };
 
-    vapi.start(configureAssistant(slug!, duration!), assistantOverrides);
+    const call = await vapi.start(
+      configureAssistant(slug!, duration!),
+      assistantOverrides,
+    );
+    console.log(call?.id);
   }
 
   function handleDisconnect() {

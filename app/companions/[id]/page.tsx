@@ -1,6 +1,6 @@
-import { RedirectWithToast } from "@/components/custom/ClientErrorToast";
+import { RedirectWithToast } from "@/components/custom/ClientToast";
 import CompanionInterlink from "@/components/custom/CompanionInterlink";
-import { getCompanion, getLastUserSession } from "@/lib/services/companion";
+import { getCompanion } from "@/lib/services/companion";
 import { getSubjectColor } from "@/lib/utils";
 import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
@@ -9,6 +9,7 @@ import { error as errorMessage } from "@/constants/message";
 import { navLinks } from "@/constants";
 import { Badge } from "@/components/ui/Badge";
 import GoBackWrapper from "@/components/custom/GoBackButton";
+import { getLastUserSession } from "@/lib/services/sessions-history";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -30,8 +31,8 @@ const Page = async ({ params }: Props) => {
   if (!data || !companion || error || fetchSessionError) {
     return (
       <RedirectWithToast
-        error={errorMessage.fetchFail}
-        errorDescription={error || errorDescription || ""}
+        title={errorMessage.fetchFail}
+        message={error || errorDescription}
         delay={300}
         redirectTo={navLinks.companions.href}
       />

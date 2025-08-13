@@ -43,6 +43,12 @@ import { navLinks, plans } from "@/constants";
 import { Plans } from "@/types";
 import { Button } from "../ui/Button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../ui/Accordion";
 
 const Navbar = () => {
   const path = usePathname();
@@ -139,7 +145,34 @@ const Navbar = () => {
         }
 
         if (children) {
-          return (
+          return isDrawer ? (
+            <Accordion type="single" collapsible key={label}>
+              <AccordionItem value="parent">
+                <AccordionTrigger className="hover:text-primary cursor-pointer py-3 text-base font-normal duration-75 hover:no-underline">
+                  <div className="flex justify-center gap-2">
+                    {icon}
+                    {label}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="p-0 pl-5">
+                  {children.map((child) => (
+                    <Link
+                      key={child.label}
+                      href={child.href}
+                      className={cn(
+                        getClassName(child.exact, 2, child.href),
+                        "hover:text-primary hover:font-semibold",
+                      )}
+                      onClick={() => setOpen(false)}
+                    >
+                      {child.icon}
+                      {child.label}
+                    </Link>
+                  ))}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          ) : (
             <Popover
               key={label}
               onOpenChange={() =>
@@ -148,18 +181,16 @@ const Navbar = () => {
               open={isOpeningChildren === href}
             >
               <PopoverTrigger asChild>
-                <Link
-                  href={href}
+                <span
                   key={label}
-                  className="flex items-center gap-1"
+                  className="flex cursor-pointer items-center gap-1"
                 >
                   <ChevronDown
                     size={18}
                     className={`${isOpeningChildren === href ? "rotate-180" : ""} transition-all duration-300`}
                   />
-                  {isDrawer ? icon : ""}
                   {label}
-                </Link>
+                </span>
               </PopoverTrigger>
 
               <PopoverContent className="flex w-[260px] flex-col gap-2">
@@ -171,9 +202,8 @@ const Navbar = () => {
                       getClassName(child.exact, 2, child.href),
                       "hover:text-primary transition-all duration-200 hover:font-semibold",
                     )}
-                    onClick={isDrawer ? () => setOpen(false) : undefined}
+                    onClick={() => setIsOpeningChildren("")}
                   >
-                    {isDrawer ? child.icon : ""}
                     {child.label}
                   </Link>
                 ))}
@@ -242,7 +272,10 @@ const Navbar = () => {
             open={open}
             onOpenChange={setOpen}
           >
-            <DrawerTrigger className="flex w-full cursor-pointer justify-end">
+            <DrawerTrigger
+              className="flex w-full cursor-pointer justify-end"
+              aria-label="open menu drawer"
+            >
               <AlignRight />
             </DrawerTrigger>
             <DrawerContent>

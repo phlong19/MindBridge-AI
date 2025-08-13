@@ -1,5 +1,5 @@
 import { getSubjectColor } from "@/lib/utils";
-import { ClientErrorToast } from "./ClientErrorToast";
+import { ClientToast } from "./ClientToast";
 import Searchbar from "./Searchbar";
 import SubjectFilter from "./SubjectFilter";
 import CompanionCard from "./CompanionCard";
@@ -8,6 +8,7 @@ import { error as errorMessage } from "@/constants/message";
 import { CompanionRow } from "@/types";
 
 interface Props {
+  title?: string;
   error?: string;
   errorDescription?: string;
   data?: CompanionRow[];
@@ -19,11 +20,12 @@ const CompanionsListWrapper = ({
   errorDescription,
   data,
   count,
+  title = "Companion Library",
 }: Props) => {
   return (
     <main>
       <section className="flex justify-between gap-4 max-sm:flex-col">
-        <h1>Companion Library</h1>
+        <h1>{title}</h1>
 
         <div className="flex flex-col gap-2 md:flex-row">
           <Searchbar />
@@ -32,10 +34,7 @@ const CompanionsListWrapper = ({
       </section>
       <div>
         {error || !data ? (
-          <ClientErrorToast
-            error={error!}
-            errorDescription={errorDescription}
-          />
+          <ClientToast title={error!} message={errorDescription} />
         ) : count === 0 ? (
           <section className="mt-10">
             <TypographyH4 className="text-muted-foreground">
