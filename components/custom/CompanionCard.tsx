@@ -5,9 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "../ui/Badge";
-// import { toast } from "sonner";
-// import { error } from "@/constants/message";
-// import { getToastStyle } from "@/lib/utils";
 import { savedBookmark } from "@/lib/services/bookmarks";
 import { ClientToast } from "./ClientToast";
 import { ToastTypes } from "@/lib/utils";
@@ -17,6 +14,7 @@ type Props = Database["public"]["Tables"]["companions"]["Row"] & {
   color: string;
   slug?: string;
   userId?: string;
+  isBookmarked?: boolean;
 };
 
 const CompanionCard = ({
@@ -27,6 +25,7 @@ const CompanionCard = ({
   subject,
   topic,
   isPublish,
+  isBookmarked,
 }: Props) => {
   const [hover, setHover] = useState(false);
   const [errorResponse, setErrorResponse] = useState<{
@@ -38,10 +37,16 @@ const CompanionCard = ({
     title: "",
     message: "",
   });
+  const [bookmark, setBookmark] = useState(isBookmarked);
 
   async function onBookmark() {
     const response = await savedBookmark(id);
     setErrorResponse(response);
+    if (response.type === "success") {
+      setBookmark(!bookmark);
+    } else {
+      setBookmark(false);
+    }
   }
 
   return (
@@ -65,7 +70,12 @@ const CompanionCard = ({
           className="companion-bookmark"
           onClick={() => onBookmark()}
         >
-          <Bookmark color="white" size={16} aria-label="bookmark icon" />
+          <Bookmark
+            color="white"
+            fill={bookmark ? "white" : "currentColor"}
+            size={16}
+            aria-label="bookmark icon"
+          />
         </button>
       </div>
 

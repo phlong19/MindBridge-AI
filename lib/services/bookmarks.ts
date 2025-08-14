@@ -18,6 +18,35 @@ export async function savedBookmark(
   }
   const supabase = createSupabaseClient();
 
+  // Check if the bookmark already exists
+  const { data: existingBookmark } = await supabase
+    .from("bookmarks")
+    .select()
+    .eq("userId", userId)
+    .eq("companionId", companionId)
+    .single();
+
+  if (existingBookmark) {
+    const { data, error } = await supabase
+      .from("bookmarks")
+      .delete()
+      .eq("id", existingBookmark.id)
+      .select();
+
+    if (error || !data) {
+      console.log(error);
+      return {
+        type: "error",
+        title: errorMessage.cantBookmark,
+        message: error.message,
+      };
+    }
+
+    if (data.length > 0) {
+      return { type: "success", title: successMessage.unbookmarked };
+    }
+  }
+
   const { error } = await supabase
     .from("bookmarks")
     .insert([{ userId, companionId }])

@@ -47,7 +47,6 @@ interface GetAllCompanions {
   subject?: string | string[];
   topic?: string | string[];
   authorized?: boolean;
-  authenticated?: boolean;
 }
 
 interface BuildClient {

@@ -14,7 +14,7 @@ const Page = async ({ searchParams }: SearchParams) => {
     page: currentPage,
     subject,
     topic,
-    authenticated: false,
+    authorized: false,
   });
 
   return (

@@ -40,11 +40,11 @@ async function page({ searchParams }: SearchParams) {
     error: getBookmarkError,
     errorDescription: bookmarkErrorDescription,
   } = await getCompanionList({
-    authenticated: true,
     limit: itemPerPage,
     page: currentPage,
     subject,
     topic,
+    authorized: false,
   });
 
   const user = await currentUser();

@@ -37,7 +37,6 @@ export async function getCompanionList({
   page = 1,
   subject,
   topic,
-  authenticated = true,
   authorized = true,
 }: GetAllCompanions) {
   const supabase = createSupabaseClient();
@@ -50,20 +49,16 @@ export async function getCompanionList({
 
   query = supabase.from("companions");
 
-  if (authenticated) {
-    const authResult = await auth();
-    userId = authResult?.userId ?? null;
+  const authResult = await auth();
+  userId = authResult?.userId ?? null;
 
-    if (userId) {
-      query = query.select("*, bookmarks(userId)", { count: "exact" });
+  if (userId) {
+    query = query.select("*, bookmarks(userId)", { count: "exact" });
 
-      if (authorized) {
-        query = query.eq("author", userId);
-      } else {
-        query = query.eq("isPublish", true);
-      }
+    if (authorized) {
+      query = query.eq("author", userId);
     } else {
-      return { error: errorMessage.notAuthenticated };
+      query = query.eq("isPublish", true);
     }
   } else {
     query = query.select("*", { count: "exact" }).eq("isPublish", true);

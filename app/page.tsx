@@ -1,9 +1,7 @@
 import CompanionCard from "@/components/custom/CompanionCard";
 import CompanionsList from "@/components/custom/CompanionsList";
 import CTA from "@/components/custom/CTA";
-import {
-  getCompanionList,
-} from "@/lib/services/companion";
+import { getCompanionList } from "@/lib/services/companion";
 import { getSubjectColor } from "@/lib/utils";
 import { ClientToast } from "@/components/custom/ClientToast";
 import NoCompanions from "@/components/custom/NoCompanions";
@@ -14,7 +12,7 @@ async function Page() {
     data: companions,
     error,
     errorDescription,
-  } = await getCompanionList({ limit: 3, authenticated: false });
+  } = await getCompanionList({ limit: 3, authorized: false });
   const recentSessions = await getSessionHistories(10);
 
   return (

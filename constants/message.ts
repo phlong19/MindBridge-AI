@@ -40,6 +40,7 @@ export const successMessage = {
   createSuccess: "A new companion created successfully.",
   saveSuccess: "Changes have been saved successfully.",
   bookmarked: "Companion bookmarked successfully!",
+  unbookmarked: "Companion unbookmarked successfully.",
   updateSuccess: "Update completed successfully.",
   deleteSuccess: "Item deleted successfully.",
   uploadSuccess: "File uploaded successfully.",
