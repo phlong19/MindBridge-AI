@@ -88,9 +88,9 @@ interface CompanionComponentProps extends CompanionRow {
   companionId: string;
   userName: string;
   userImage: string;
-  fetchedMessages: string | null;
+  fetchedMessages?: string | null;
   userId: string;
-  sessionId: number;
+  sessionId?: number;
 }
 
 interface VoiceGroup {

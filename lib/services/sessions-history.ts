@@ -9,7 +9,7 @@ export async function saveSessionHistory(
   isPublish: boolean = false,
   messages: string,
   userId: string,
-  sessionId: number,
+  sessionId?: number,
 ) {
   const supabase = createSupabaseClient();
 
@@ -91,7 +91,7 @@ export async function getLastUserSession(companionId: string, userId: string) {
 
   const { data, error: error } = await supabase
     .from("session-history")
-    .select("id, messages")
+    .select("id, user_id, messages")
     .eq("user_id", userId!)
     .eq("companion_id", companionId)
     .limit(1)
@@ -103,6 +103,10 @@ export async function getLastUserSession(companionId: string, userId: string) {
       error: errorMessage.fetchFail,
       errorDescription: error.message,
     };
+  }
+
+  if (data?.user_id !== userId) {
+    return {};
   }
 
   return { data };

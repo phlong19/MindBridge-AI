@@ -17,6 +17,15 @@ import { TypographyP } from "../ui/Typography";
 import { toast } from "sonner";
 import { error as errorMessage } from "@/constants/message";
 import { saveSessionHistory } from "@/lib/services/sessions-history";
+import { Button } from "../ui/Button";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "../ui/Drawer";
+import { Expand, X } from "lucide-react";
 
 enum ECallStatus {
   INACTIVE = "INACTIVE",
@@ -71,7 +80,8 @@ function CompanionInterlink({
       ? (JSON.parse(fetchedMessages) as SavedMessage[])
       : [],
   );
-
+  const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
+  const messageRef = useRef<SavedMessage[]>(messages);
   useEffect(() => {
     if (lottieRef) {
       if (isSpeaking) {
@@ -84,7 +94,10 @@ function CompanionInterlink({
 
   // know bugs
   // 1. has to be second click to really turn on the mic at first time
-  // 2. cannot update messages
+
+  useEffect(() => {
+    messageRef.current = messages;
+  }, [messages]);
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -103,7 +116,7 @@ function CompanionInterlink({
           saveSessionHistory(
             companionId,
             isPublish ?? false,
-            JSON.stringify(messages),
+            JSON.stringify(messageRef.current),
             userId,
             sessionId,
           ).then(
@@ -179,16 +192,26 @@ function CompanionInterlink({
       serverMessages: [],
     };
 
-    const call = await vapi.start(
-      configureAssistant(slug!, duration!),
-      assistantOverrides,
-    );
-    console.log(call?.id);
+    vapi.start(configureAssistant(slug!, duration!), assistantOverrides);
   }
 
   function handleDisconnect() {
     setCallStatus(ECallStatus.FINISHED);
     vapi.stop();
+  }
+
+  function renderMessages() {
+    return messages.map(({ content, role }, index) =>
+      role === "assistant" ? (
+        <TypographyP key={index} className="max-sm:text-sm">
+          {name?.split(" ")[0].replace("/[,.]/g/", "")}: {content}
+        </TypographyP>
+      ) : (
+        <TypographyP key={index} className="text-primary max-sm:text-sm">
+          {userName}: {content}
+        </TypographyP>
+      ),
+    );
   }
 
   return (
@@ -288,20 +311,39 @@ function CompanionInterlink({
 
       <section className="transcript">
         <div className="transcript-message no-scrollbar">
-          {messages.map(({ content, role }, index) =>
-            role === "assistant" ? (
-              <TypographyP key={index} className="max-sm:text-sm">
-                {name?.split(" ")[0].replace("/[,.]/g/", "")}: {content}
-              </TypographyP>
-            ) : (
-              <TypographyP key={index} className="text-primary max-sm:text-sm">
-                {userName}: {content}
-              </TypographyP>
-            ),
-          )}
+          {renderMessages()}
         </div>
         <div className="transcript-fade"></div>
+        {messages.length > 0 && (
+          <Button
+            aria-label="View full chat"
+            title="View full chat"
+            onClick={() => setIsTranscriptOpen(true)}
+            className="absolute right-0 rounded-full !p-2.5"
+          >
+            <Expand className="size-4" />
+          </Button>
+        )}
       </section>
+
+      <Drawer
+        open={isTranscriptOpen}
+        direction="right"
+        onOpenChange={setIsTranscriptOpen}
+      >
+        <DrawerContent className="ml-auto w-full max-w-lg px-4">
+          <DrawerHeader className="flex flex-row items-center justify-between px-0 text-xl">
+            <DrawerTitle>Full Conversation</DrawerTitle>
+            <DrawerClose className="cursor-pointer">
+              <X />
+            </DrawerClose>
+          </DrawerHeader>
+          <hr className="pb-3" />
+          <div className="space-y-1 overflow-y-auto pb-4">
+            {renderMessages()}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </section>
   );
 }

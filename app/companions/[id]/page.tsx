@@ -22,17 +22,13 @@ const Page = async ({ params }: Props) => {
 
   const { id } = await params;
   const { companion, error } = await getCompanion(id, user.id);
-  const {
-    data,
-    error: fetchSessionError,
-    errorDescription,
-  } = await getLastUserSession(id, user.id);
+  const { data } = await getLastUserSession(id, user.id);
 
-  if (!data || !companion || error || fetchSessionError) {
+  if (!companion) {
     return (
       <RedirectWithToast
         title={errorMessage.fetchFail}
-        message={error || errorDescription}
+        message={error}
         delay={300}
         redirectTo={navLinks.companions.href}
       />
@@ -68,7 +64,7 @@ const Page = async ({ params }: Props) => {
                 {subject}
               </Badge>
               {companion.isPublish && (
-                <Badge className="max-h-7 !self-stretch !rounded-4xl max-sm:hidden">
+                <Badge className="max-h-7 !self-stretch !rounded-4xl !bg-green-600 max-sm:hidden">
                   Community
                 </Badge>
               )}
