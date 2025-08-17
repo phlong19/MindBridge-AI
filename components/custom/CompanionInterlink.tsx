@@ -233,6 +233,7 @@ function CompanionInterlink({
                 height={128}
                 src={photoUrl ? photoUrl : `/icons/${subject}.svg`}
                 alt={photoUrl ? name! : subject!}
+                unoptimized
               />
             </div>
 
