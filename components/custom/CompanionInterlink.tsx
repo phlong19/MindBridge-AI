@@ -82,6 +82,7 @@ function CompanionInterlink({
   );
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
   const messageRef = useRef<SavedMessage[]>(messages);
+
   useEffect(() => {
     if (lottieRef) {
       if (isSpeaking) {
@@ -90,10 +91,7 @@ function CompanionInterlink({
         lottieRef.current?.stop();
       }
     }
-  });
-
-  // know bugs
-  // 1. has to be second click to really turn on the mic at first time
+  }, [isSpeaking]);
 
   useEffect(() => {
     messageRef.current = messages;
@@ -173,9 +171,8 @@ function CompanionInterlink({
   }, []);
 
   function onToggleMicrophone() {
-    const isMuted = vapi.isMuted();
     vapi.setMuted(!isMuted);
-    setIsMuted(!isMuted);
+    setIsMuted((prev) => !prev);
   }
 
   async function handleConnect() {
@@ -331,7 +328,10 @@ function CompanionInterlink({
         direction="right"
         onOpenChange={setIsTranscriptOpen}
       >
-        <DrawerContent className="ml-auto w-full max-w-lg px-4">
+        <DrawerContent
+          aria-describedby="Full Conversation View Panel"
+          className="ml-auto w-full max-w-lg px-4"
+        >
           <DrawerHeader className="flex flex-row items-center justify-between px-0 text-xl">
             <DrawerTitle>Full Conversation</DrawerTitle>
             <DrawerClose className="cursor-pointer">
