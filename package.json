@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test:companion": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --test-isolation=none components/custom/companion-workspace/*.test.mjs lib/services/sessions-history.test.mjs lib/services/text-chat.test.mjs lib/vapi-muted-start.test.mjs",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",

@@ -1,0 +1,26 @@
+/* Load workspace sizing with its shared shell, independently of other pages. */
+main.companion-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: none;
+  height: calc(100dvh - 80px);
+  min-height: 0;
+  margin: 0;
+  padding: 12px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+@media (min-width: 768px) {
+  main.companion-workspace {
+    grid-template-columns: 260px minmax(0, 1fr);
+    padding: 16px;
+  }
+}
+
+@media (min-width: 1280px) {
+  main.companion-workspace {
+    grid-template-columns: 280px minmax(0, 1fr) 360px;
+  }
+}

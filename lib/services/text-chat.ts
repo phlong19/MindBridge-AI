@@ -89,7 +89,9 @@ export async function sendCompanionTextMessage(
   if (sessionId !== null) {
     const { data, error: sessionError } = await supabase
       .from("session-history")
-      .select("id, messages, created_at, vapi_chat_id, interaction_mode")
+      .select(
+        "id, messages, created_at, vapi_chat_id, interaction_mode, ended_by_user",
+      )
       .eq("id", sessionId)
       .eq("user_id", userId)
       .eq("companion_id", companionId)
@@ -103,6 +105,13 @@ export async function sendCompanionTextMessage(
     }
     if (!data || data.interaction_mode !== "text") {
       return { error: errorMessage.accessDenied };
+    }
+    if (data.ended_by_user || !data.vapi_chat_id) {
+      return {
+        error: errorMessage.invalidRequest,
+        errorDescription:
+          "This text session cannot be resumed. Start a new conversation instead.",
+      };
     }
 
     history = parseMessages(data.messages);

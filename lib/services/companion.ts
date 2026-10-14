@@ -31,6 +31,32 @@ export async function createCompanion(formData: CreateCompanion) {
 }
 //#endregion
 
+// Compact, authenticated navigation for the companion workspace.
+export async function getWorkspaceCompanions(search = "", page = 1) {
+  const { userId } = await auth();
+  if (!userId) return { error: errorMessage.notAuthenticated };
+  if (!Number.isSafeInteger(page) || page < 1)
+    return { error: errorMessage.invalidRequest };
+  const supabase = createSupabaseClient();
+  const term = search
+    .slice(0, 200)
+    .replace(/[(),.%"\\]/g, " ")
+    .trim();
+  let query = supabase
+    .from("companions")
+    .select("*", { count: "exact" })
+    .eq("author", userId)
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
+  if (term) query = query.or(`name.ilike.%${term}%,topic.ilike.%${term}%`);
+  const { data, count, error } = await query.range(
+    (page - 1) * 20,
+    page * 20 - 1,
+  );
+  if (error) return { error: errorMessage.fetchFail };
+  return { data, count: count ?? 0 };
+}
+
 //#region get list
 export async function getCompanionList({
   limit = 10,
