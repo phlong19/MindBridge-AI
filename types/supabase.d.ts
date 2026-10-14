@@ -218,7 +218,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_recent_published_session_companions: {
+        Args: { max_results?: number };
+        Returns: Database["public"]["Tables"]["companions"]["Row"][];
+      };
     };
     Enums: {
       [_ in never]: never;
