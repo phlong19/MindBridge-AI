@@ -1,0 +1,8 @@
+# Local Supabase CLI configuration. Use your existing Clerk instance for auth.
+project_id = "mindbridge-ai"
+
+# For local development with Clerk, configure the actual Clerk frontend API
+# domain as documented at https://supabase.com/docs/guides/auth/third-party/clerk
+# [auth.third_party.clerk]
+# enabled = true
+# domain = "your-clerk-domain.clerk.accounts.dev"
