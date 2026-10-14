@@ -128,26 +128,44 @@ export type Database = {
         Row: {
           companion_id: string | null;
           created_at: string;
+          duration_seconds: number | null;
+          ended_by_user: boolean;
           id: number;
+          interaction_mode: string;
           isPublish: boolean | null;
+          learning_recap: Json | null;
           messages: string | null;
           user_id: string | null;
+          vapi_chat_id: string | null;
+          vapi_call_id: string | null;
         };
         Insert: {
           companion_id?: string | null;
           created_at?: string;
+          duration_seconds?: number | null;
+          ended_by_user?: boolean;
           id?: number;
+          interaction_mode?: string;
           isPublish?: boolean | null;
+          learning_recap?: Json | null;
           messages?: string | null;
           user_id?: string | null;
+          vapi_chat_id?: string | null;
+          vapi_call_id?: string | null;
         };
         Update: {
           companion_id?: string | null;
           created_at?: string;
+          duration_seconds?: number | null;
+          ended_by_user?: boolean;
           id?: number;
+          interaction_mode?: string;
           isPublish?: boolean | null;
+          learning_recap?: Json | null;
           messages?: string | null;
           user_id?: string | null;
+          vapi_chat_id?: string | null;
+          vapi_call_id?: string | null;
         };
         Relationships: [
           {

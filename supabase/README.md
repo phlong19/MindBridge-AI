@@ -88,7 +88,22 @@ server action checks the authenticated admin ID and writes with the server-only
 Recheck that Vapi still lists the voices and ElevenLabs provider IDs used by
 your app; voice availability and prices may have changed.
 
-## 4. Smoke test before switching traffic
+## 4. Text chat and optional learning recaps
+
+Apply `20261014030000_add_learning_recap.sql` before using text chat or recap
+generation.
+Set the server-only `VAPI_PRIVATE_API_KEY` environment variable in local and
+deployed environments. The companion room's **Open text chat** action uses
+Vapi's Chat API without opening a microphone session. Text conversations are
+saved to that user's private `session-history` row as they go. Vapi's current
+usage-based Chat API may require a payment method and a completed purchase.
+
+The app offers a learning recap only after a user-ended voice call of at least
+60 seconds with at least two student turns. Vapi analyzes its saved call
+transcript only after the user selects **Generate recap**, then the app stores
+the result on that user's private session-history row.
+
+## 5. Smoke test before switching traffic
 
 ```bash
 npm ci
@@ -107,7 +122,7 @@ configured by these commits. This migration has not been run against your
 Supabase project and cannot replace missing historical data. If a backup is
 recovered later, compare its exact database schema and data before migrating.
 
-## 5. Prevent this recurrence
+## 6. Prevent this recurrence
 
 Keep SQL migrations in GitHub. Independently export and safely store periodic
 database backups **and** any Supabase Storage bucket objects (database backups

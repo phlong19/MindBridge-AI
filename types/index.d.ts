@@ -77,6 +77,13 @@ interface SavedMessage {
   content: string;
 }
 
+interface LearningRecap {
+  summary: string;
+  topicsLearned: string[];
+  strengths: string[];
+  tryNext: string[];
+}
+
 type CompanionRow = Database["public"]["Tables"]["companions"]["Row"];
 
 type Companion = Database["public"]["Tables"]["companions"]["Row"] & {
@@ -89,8 +96,8 @@ interface CompanionComponentProps extends CompanionRow {
   userName: string;
   userImage: string;
   fetchedMessages?: string | null;
+  fetchedRecap?: LearningRecap | null;
   userId: string;
-  sessionId?: number;
 }
 
 interface VoiceGroup {

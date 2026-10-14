@@ -2,6 +2,7 @@
 
 import { createSupabaseClient } from "../supabase";
 import { error as errorMessage } from "@/constants/message";
+import { auth } from "@clerk/nextjs/server";
 
 //#region save session history
 export async function saveSessionHistory(
@@ -9,20 +10,31 @@ export async function saveSessionHistory(
   isPublish: boolean = false,
   messages: string,
   userId: string,
-  sessionId?: number,
+  durationSeconds: number,
+  endedByUser: boolean,
+  vapiCallId: string | null,
 ) {
+  const { userId: authenticatedUserId } = await auth();
+  if (!authenticatedUserId || authenticatedUserId !== userId) {
+    return { error: errorMessage.notAuthorized };
+  }
+
   const supabase = createSupabaseClient();
 
-  const { data, error } = await supabase.from("session-history").upsert(
-    {
-      id: sessionId,
+  const { data, error } = await supabase
+    .from("session-history")
+    .insert({
       companion_id: companionId,
       messages,
       user_id: userId,
       isPublish,
-    },
-    { onConflict: "id" },
-  );
+      duration_seconds: Math.max(0, Math.floor(durationSeconds)),
+      ended_by_user: endedByUser,
+      vapi_call_id: vapiCallId,
+      interaction_mode: "voice",
+    })
+    .select("id")
+    .single();
 
   if (error) {
     console.log(error.message);
@@ -32,7 +44,7 @@ export async function saveSessionHistory(
     };
   }
 
-  return data;
+  return { data };
 }
 //#endregion
 
@@ -91,9 +103,12 @@ export async function getLastUserSession(companionId: string, userId: string) {
 
   const { data, error: error } = await supabase
     .from("session-history")
-    .select("id, user_id, messages")
+    .select(
+      "id, user_id, messages, learning_recap, duration_seconds, ended_by_user",
+    )
     .eq("user_id", userId!)
     .eq("companion_id", companionId)
+    .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 

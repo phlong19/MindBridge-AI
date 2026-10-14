@@ -10,6 +10,7 @@ import { navLinks } from "@/constants";
 import { Badge } from "@/components/ui/Badge";
 import GoBackWrapper from "@/components/custom/GoBackButton";
 import { getLastUserSession } from "@/lib/services/sessions-history";
+import { LearningRecap } from "@/types";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -80,7 +81,7 @@ const Page = async ({ params }: Props) => {
       <CompanionInterlink
         {...companion}
         fetchedMessages={data?.messages}
-        sessionId={data?.id}
+        fetchedRecap={data?.learning_recap as LearningRecap | null}
         companionId={id}
         userId={user.id}
         userImage={user.imageUrl}
