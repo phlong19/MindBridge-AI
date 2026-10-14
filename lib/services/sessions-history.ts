@@ -40,12 +40,12 @@ export async function saveSessionHistory(
 export async function getSessionHistories(limit: number) {
   const supabase = createSupabaseClient();
 
-  const { data, error } = await supabase
-    .from("session-history")
-    .select("companion: companion_id (*)")
-    .eq("isPublish", true)
-    .order("created_at", { ascending: false })
-    .limit(limit);
+  // This RPC returns only public companion fields. Session transcripts stay
+  // private under RLS, including for anonymously viewed homepages.
+  const { data, error } = await supabase.rpc(
+    "get_recent_published_session_companions",
+    { max_results: limit },
+  );
 
   if (error) {
     console.log(error.message);
@@ -55,7 +55,7 @@ export async function getSessionHistories(limit: number) {
     };
   }
 
-  return data.map(({ companion }) => companion);
+  return data;
 }
 //#endregion
 
