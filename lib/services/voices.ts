@@ -2,6 +2,8 @@
 
 import { Voice } from "@/types";
 import { createSupabaseClient } from "../supabase";
+import { createSupabaseAdminClient } from "../supabase-admin";
+import { auth } from "@clerk/nextjs/server";
 import { error as errorMessage } from "@/constants/message";
 
 //#region sync voices
@@ -11,6 +13,11 @@ export async function fetchVoicesAndSync(
   provider: Providers,
   token: string,
 ): Promise<Voice[] | Record<string, string>> {
+  const { userId } = await auth();
+  if (!userId || !process.env.ADMIN_USER_ID || userId !== process.env.ADMIN_USER_ID) {
+    return { error: errorMessage.notAuthorized };
+  }
+
   let rawData: Omit<Voice, "style">[];
   let data: Voice[];
 
@@ -62,7 +69,7 @@ export async function fetchVoicesAndSync(
       });
 
       // sync to db
-      const supabase = createSupabaseClient();
+      const supabase = createSupabaseAdminClient();
       const { error } = await supabase
         .from("voices")
         .upsert(data, { onConflict: "id" });
