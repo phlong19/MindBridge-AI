@@ -9,6 +9,7 @@ import { savedBookmark } from "@/lib/services/bookmarks";
 import { ClientToast } from "./ClientToast";
 import { ToastTypes } from "@/lib/utils";
 import { Bookmark } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/Tooltip";
 
 type Props = Database["public"]["Tables"]["companions"]["Row"] & {
   color: string;
@@ -63,20 +64,27 @@ const CompanionCard = ({
           )}
         </div>
 
-        <button
-          type="button"
-          title="Bookmark"
-          aria-label="Bookmark button"
-          className="companion-bookmark"
-          onClick={() => onBookmark()}
-        >
-          <Bookmark
-            color="white"
-            fill={bookmark ? "white" : "currentColor"}
-            size={16}
-            aria-label="bookmark icon"
-          />
-        </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              aria-label={bookmark ? "Remove bookmark" : "Add bookmark"}
+              aria-pressed={!!bookmark}
+              className="companion-bookmark"
+              onClick={() => onBookmark()}
+            >
+              <Bookmark
+                color="white"
+                fill={bookmark ? "white" : "currentColor"}
+                size={16}
+                aria-hidden="true"
+              />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {bookmark ? "Remove bookmark" : "Add bookmark"}
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <h2 className="text-2xl font-bold">{name}</h2>

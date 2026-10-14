@@ -61,6 +61,15 @@ The migration creates:
 - Clerk JWT-based row-level-security policies and a read-only homepage RPC
   exposing published **companion** metadata, never transcript contents.
 
+The follow-up seed migration moves the 50 voice catalogue records that were
+previously embedded in `app/voices/page.tsx` into `public.voices`. The existing
+RLS policy grants anonymous users read access to the full catalogue. It also
+adds three clearly marked `[Test]` companions, two bookmarks, and three sample
+session histories owned by the test Clerk user supplied for development. A
+later seed migration adds six published `[Community]` companion examples for
+maths, language, coding, history, economics, and science. These are repeatable
+demo fixtures, not recovered historical user data.
+
 If `db push` reports an error, stop and investigate rather than manually
 creating more tables in the Dashboard. The SQL intentionally uses the exact
 camelCase and hyphenated identifiers in the existing TypeScript types.
@@ -68,10 +77,13 @@ camelCase and hyphenated identifiers in the existing TypeScript types.
 ## 3. Restore the voices catalogue
 
 A fresh database has no voices. Sign in as `ADMIN_USER_ID`, visit
-`/admin/sync-voices`, and supply the appropriate **Vapi private token** in
-that admin form to import voice-library metadata. The server action now checks
-the authenticated admin ID and writes with a server-only Supabase service-role
-key. No public/ordinary user may write directly to `voices`.
+`/admin/sync-voices`, and supply a current **Vapi dashboard session bearer**
+from the dashboard's Voice Library network request. This is a short-lived
+WorkOS session credential, not a Vapi private API key; do not commit or share
+it. The endpoint is dashboard-internal and may change without notice. The
+server action checks the authenticated admin ID and writes with the server-only
+`SUPABASE_SERVICE_ROLE_KEY`. No public/ordinary user may write directly to
+`voices`.
 
 Recheck that Vapi still lists the voices and ElevenLabs provider IDs used by
 your app; voice availability and prices may have changed.

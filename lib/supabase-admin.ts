@@ -10,7 +10,13 @@ export function createSupabaseAdminClient() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !serviceRoleKey) {
-    throw new Error("Supabase admin configuration is missing.");
+    const missing = [
+      !url && "NEXT_PUBLIC_SUPABASE_URL",
+      !serviceRoleKey && "SUPABASE_SERVICE_ROLE_KEY",
+    ].filter(Boolean);
+    throw new Error(
+      `Missing server-side Supabase configuration: ${missing.join(", ")}.`,
+    );
   }
 
   return createClient<Database>(url, serviceRoleKey, {

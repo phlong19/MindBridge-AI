@@ -36,16 +36,25 @@ export default function Page() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const voices = await fetchVoicesAndSync("11labs", "Bearer " + values.key);
+    try {
+      const voices = await fetchVoicesAndSync("11labs", values.key);
 
-    if (voices.length && Array.isArray(voices)) {
-      setVoiceData(voices);
-      toast.success(successMessage.syncComplete, getToastStyle("success"));
-    } else if (!Array.isArray(voices)) {
-      toast.error(voices.error, {
-        ...getToastStyle("error"),
-        description: voices.errorDescription,
-      });
+      if (Array.isArray(voices) && voices.length > 0) {
+        setVoiceData(voices);
+        toast.success(successMessage.syncComplete, getToastStyle("success"));
+      } else if (!Array.isArray(voices)) {
+        toast.error(voices.error, {
+          ...getToastStyle("error"),
+          description: voices.errorDescription,
+        });
+      } else {
+        toast.error(errorMessage.fetchFail, getToastStyle("error"));
+      }
+    } catch {
+      toast.error(errorMessage.serverError, getToastStyle("error"));
+    } finally {
+      form.reset({ key: "" });
+      setKeyInformation({});
     }
   }
 
@@ -54,11 +63,11 @@ export default function Page() {
     return false;
   }
 
-  function validateKey(key: string) {
-    // force remove bearer keyword, or simple check includes space
-    if (key.includes(" ")) {
+  function validateKey(value: string) {
+    const key = value.trim().replace(/^Bearer\s+/i, "");
+    if (!key || /\s/.test(key)) {
       setKeyInformation({});
-      return setFormError(errorMessage.invalidTokenContainSpace);
+      return setFormError(errorMessage.invalidToken);
     }
 
     try {
@@ -69,7 +78,7 @@ export default function Page() {
       // 2. check if the key expired yet
       const { iss, exp } = decode;
 
-      if (iss?.includes("api.vapi.ai") && exp && exp > currentTime) {
+      if (iss === "https://api.workos.com" && exp && exp > currentTime) {
         setKeyInformation({ ...decode });
         return form.clearErrors();
       } else throw new Error();
@@ -94,7 +103,9 @@ export default function Page() {
               name="key"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="pb-2">Authorization key</FormLabel>
+                  <FormLabel className="pb-2">
+                    Vapi dashboard authorization value
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
@@ -105,7 +116,7 @@ export default function Page() {
                           field.onBlur();
                         } else setKeyInformation({});
                       }}
-                      placeholder="Paste your key here"
+                      placeholder="Paste a current JWT or the full Bearer value"
                       className="min-h-40"
                     />
                   </FormControl>
