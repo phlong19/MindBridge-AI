@@ -3,7 +3,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { error as errorMessage } from "@/constants/message";
 import { createSupabaseClient } from "@/lib/supabase";
-import { SavedMessage } from "@/types";
+import type { SavedMessage } from "@/types";
+import { buildConversationContext } from "@/lib/conversation-context";
 
 const MAX_MESSAGE_LENGTH = 2_000;
 
@@ -80,6 +81,7 @@ export async function sendCompanionTextMessage(
   }
 
   let history: SavedMessage[] = [];
+  let priorContext: SavedMessage[] = [];
   let existingSession: {
     id: number;
     created_at: string;
@@ -90,7 +92,7 @@ export async function sendCompanionTextMessage(
     const { data, error: sessionError } = await supabase
       .from("session-history")
       .select(
-        "id, messages, created_at, vapi_chat_id, interaction_mode, ended_by_user",
+        "id, messages, created_at, vapi_chat_id, interaction_mode, ended_by_user, is_demo",
       )
       .eq("id", sessionId)
       .eq("user_id", userId)
@@ -103,7 +105,7 @@ export async function sendCompanionTextMessage(
         errorDescription: sessionError.message,
       };
     }
-    if (!data || data.interaction_mode !== "text") {
+    if (!data || data.interaction_mode !== "text" || data.is_demo) {
       return { error: errorMessage.accessDenied };
     }
     if (data.ended_by_user || !data.vapi_chat_id) {
@@ -120,6 +122,37 @@ export async function sendCompanionTextMessage(
       created_at: data.created_at,
       vapi_chat_id: data.vapi_chat_id,
     };
+  } else {
+    // Query the authenticated learner's recent real sessions only. Historical
+    // turns initialize the new provider chat; the saved row contains this new
+    // text session's turns so the workspace can stack sessions without copies.
+    const { data: previousSessions, error: historyError } = await supabase
+      .from("session-history")
+      .select("id, messages, interaction_mode, is_demo")
+      .eq("user_id", userId)
+      .eq("companion_id", companionId)
+      .eq("is_demo", false)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(20);
+    if (historyError) {
+      return {
+        error: errorMessage.fetchFail,
+        errorDescription: historyError.message,
+      };
+    }
+    priorContext = buildConversationContext(
+      (previousSessions ?? [])
+        .slice()
+        .reverse()
+        .filter((session) => !session.is_demo)
+        .flatMap((session) => {
+          const messages = parseMessages(session.messages);
+          return session.interaction_mode === "text"
+            ? messages
+            : messages.reverse();
+        }),
+    );
   }
 
   const conversation = [
@@ -146,7 +179,10 @@ export async function sendCompanionTextMessage(
                 model: {
                   provider: "openai",
                   model: "gpt-4",
-                  messages: [{ role: "system", content: systemPrompt }],
+                  messages: [
+                    { role: "system", content: systemPrompt },
+                    ...priorContext,
+                  ],
                 },
               },
             }),

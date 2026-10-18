@@ -24,6 +24,7 @@ type Summary = {
   duration_seconds: number | null;
   ended_by_user: boolean;
   canResume: boolean;
+  is_demo?: boolean;
 };
 
 export default function ConversationHistory({
@@ -174,6 +175,11 @@ export default function ConversationHistory({
                   {item.interaction_mode === "voice"
                     ? "Voice session"
                     : "Text session"}
+                  {item.is_demo && (
+                    <span className="ml-2 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] text-amber-800">
+                      Demo
+                    </span>
+                  )}
                   {item.id === session.selectedSessionId && (
                     <span className="text-primary ml-2 text-[10px]">
                       Current view

@@ -110,3 +110,17 @@ test("typed input is saved once when echoed by final voice transcripts", async (
     { role: "user", content: "Explain this" },
   ]);
 });
+
+test("a spoken reply matching an earlier typed turn is retained after the assistant responds", async () => {
+  const { VoiceSession } = await import("./voice-session.ts");
+  const call = new VoiceSession();
+  call.begin(1000);
+  call.addTypedMessage("Yes");
+  call.addTranscript({
+    role: "assistant",
+    content: "Would you like another example?",
+  });
+  call.addTranscript({ role: "user", content: "Yes" });
+  assert.equal(call.messages.length, 3);
+  assert.equal(call.snapshot().messages[0].content, "Yes");
+});

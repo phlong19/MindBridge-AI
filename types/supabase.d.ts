@@ -132,6 +132,7 @@ export type Database = {
           ended_by_user: boolean;
           id: number;
           interaction_mode: string;
+          is_demo: boolean;
           isPublish: boolean | null;
           learning_recap: Json | null;
           messages: string | null;
@@ -146,6 +147,7 @@ export type Database = {
           ended_by_user?: boolean;
           id?: number;
           interaction_mode?: string;
+          is_demo?: boolean;
           isPublish?: boolean | null;
           learning_recap?: Json | null;
           messages?: string | null;
@@ -160,6 +162,7 @@ export type Database = {
           ended_by_user?: boolean;
           id?: number;
           interaction_mode?: string;
+          is_demo?: boolean;
           isPublish?: boolean | null;
           learning_recap?: Json | null;
           messages?: string | null;

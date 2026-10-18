@@ -29,6 +29,9 @@ export class VoiceSession {
       (message.role !== "user" && message.role !== "assistant")
     )
       return;
+    // An assistant reply closes the typed turn's echo window. A later spoken
+    // answer can legitimately contain exactly the same words.
+    if (message.role === "assistant") this.typedMessages = [];
     const pending =
       message.role === "user"
         ? this.typedMessages.indexOf(message.content)
@@ -40,14 +43,22 @@ export class VoiceSession {
     this.messages = [message, ...this.messages];
   }
 
-  finish(endedByUser: boolean, now = Date.now()): CompletedVoiceSession | null {
+  snapshot(
+    endedByUser = false,
+    now = Date.now(),
+  ): CompletedVoiceSession | null {
     if (this.startedAt === null) return null;
-    const completed = {
+    return {
       messages: [...this.messages],
       callId: this.callId,
       endedByUser,
       durationSeconds: Math.max(0, Math.floor((now - this.startedAt) / 1000)),
     };
+  }
+
+  finish(endedByUser: boolean, now = Date.now()): CompletedVoiceSession | null {
+    const completed = this.snapshot(endedByUser, now);
+    if (!completed) return null;
     this.startedAt = null;
     this.callId = null;
     return completed;

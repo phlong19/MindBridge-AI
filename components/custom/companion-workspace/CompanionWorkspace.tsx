@@ -17,7 +17,7 @@ import CompanionSidebar from "./CompanionSidebar";
 import CompanionConversation from "./CompanionConversation";
 import CompanionDetails from "./CompanionDetails";
 import { useCompanionSession } from "./useCompanionSession";
-import type { WorkspaceSession } from "./session-messages";
+import type { ConversationPage, WorkspaceSession } from "./session-messages";
 import { useCompanionWorkspaceShell } from "./CompanionWorkspaceShell";
 
 export default function CompanionWorkspace({
@@ -25,6 +25,7 @@ export default function CompanionWorkspace({
   userId,
   userName,
   initialSession,
+  initialConversation,
   voiceName,
   historyError,
 }: {
@@ -32,10 +33,17 @@ export default function CompanionWorkspace({
   userId: string;
   userName: string;
   initialSession: WorkspaceSession | null;
+  initialConversation: ConversationPage;
   voiceName: string | null;
   historyError: boolean;
 }) {
-  const session = useCompanionSession(companion, userId, initialSession);
+  const session = useCompanionSession(
+    companion,
+    userId,
+    initialSession,
+    initialConversation,
+    historyError,
+  );
   const {
     navigation,
     setCurrentCompanion,

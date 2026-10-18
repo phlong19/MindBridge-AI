@@ -18,8 +18,14 @@ function deferred() {
 
 // A small hook driver exercises the real hook with controlled external IO.
 // State/ref/effect slots persist between explicit renders, as they do in React.
-function setup(initialSession = null, voiceAvailable = true) {
-  let now = 1000;
+function setup(
+  initialSession = null,
+  voiceAvailable = true,
+  companionOverrides = {},
+  initialConversation = undefined,
+  historyError = false,
+) {
+  let now = Date.parse("2026-10-18T12:00:00Z");
   class Clock extends Date {
     static now() {
       return now;
@@ -82,14 +88,26 @@ function setup(initialSession = null, voiceAvailable = true) {
     sent.push(message);
   };
   const startup = deferred();
-  client.start = () => startup.promise;
+  const starts = [];
+  client.start = (...args) => {
+    starts.push(args);
+    return startup.promise;
+  };
   const reply = deferred();
   const recapReply = deferred();
   let recapRequests = 0;
   let saves = 0;
+  const savedSnapshots = [];
+  let saveHandler = async () => ({ data: { id: 8 } });
+  let historyHandler = async () => ({ data: [], nextCursor: null });
+  const timers = new Map();
+  let timerId = 0;
   const mocks = {
     react,
-    "@/lib/utils": { configureAssistant: () => ({}) },
+    "@/lib/utils": { configureAssistant: () => ({ model: { messages: [] } }) },
+    "@/lib/conversation-context": {
+      buildConversationContext: (messages) => messages.slice(-30),
+    },
     "@/lib/vapi.sdk": {
       createVapiClient: () => {
         if (!voiceAvailable) throw new Error("Voice unavailable");
@@ -97,10 +115,12 @@ function setup(initialSession = null, voiceAvailable = true) {
       },
     },
     "@/lib/services/sessions-history": {
-      saveSessionHistory: async () => {
+      saveSessionHistory: async (...args) => {
         saves++;
-        return { data: { id: 8 } };
+        savedSnapshots.push(args);
+        return saveHandler(...args);
       },
+      getCompanionConversation: (...args) => historyHandler(...args),
     },
     "@/lib/services/text-chat": {
       sendCompanionTextMessage: () => reply.promise,
@@ -143,6 +163,13 @@ function setup(initialSession = null, voiceAvailable = true) {
             return 1;
           },
           clearInterval() {},
+          setTimeout(callback) {
+            timers.set(++timerId, callback);
+            return timerId;
+          },
+          clearTimeout(id) {
+            timers.delete(id);
+          },
         },
       },
     );
@@ -158,11 +185,18 @@ function setup(initialSession = null, voiceAvailable = true) {
     topic: "Algebra",
     style: false,
     isPublish: false,
+    ...companionOverrides,
   };
   function render() {
     cursor = 0;
     effects = [];
-    const state = hook(companion, "learner", initialSession);
+    const state = hook(
+      companion,
+      "learner",
+      initialSession,
+      initialConversation,
+      historyError,
+    );
     effects.forEach((effect) => effect());
     return state;
   }
@@ -171,9 +205,23 @@ function setup(initialSession = null, voiceAvailable = true) {
     render,
     client,
     sent,
+    starts,
     startup,
     reply,
     recapReply,
+    savedSnapshots,
+    setSaveHandler(handler) {
+      saveHandler = handler;
+    },
+    setHistoryHandler(handler) {
+      historyHandler = handler;
+    },
+    async flushAutosave() {
+      const pending = [...timers.values()];
+      timers.clear();
+      pending.forEach((callback) => callback());
+      await settle();
+    },
     advance(milliseconds) {
       now += milliseconds;
     },
@@ -205,7 +253,7 @@ test("a recoverable SDK startup error cannot hide a subsequently active call", a
   app.dispose();
 });
 
-test("the header CTA starts a shared Vapi session with the microphone muted", async () => {
+test("an explicit muted Vapi session supports typed turns and microphone toggling", async () => {
   const app = setup();
   await settle();
   const pending = app.render().startConversation();
@@ -222,11 +270,11 @@ test("the header CTA starts a shared Vapi session with the microphone muted", as
   app.dispose();
 });
 
-test("the first typed message starts a muted Vapi conversation without history", async () => {
+test("a voice session can start with a typed first turn", async () => {
   const app = setup();
   await settle();
   app.render().setDraft("What is a linear equation?");
-  const pending = app.render().send();
+  const pending = app.render().startVoice({ muted: true, firstMessage: "What is a linear equation?" });
   assert.equal(app.render().callStatus, "connecting");
   app.client.emit("call-start");
   app.startup.resolve({ id: "first-call" });
@@ -235,6 +283,169 @@ test("the first typed message starts a muted Vapi conversation without history",
   assert.equal(app.render().messages[0].content, "What is a linear equation?");
   assert.equal(app.render().draft, "");
   assert.equal(app.sent[0].triggerResponseEnabled, true);
+  app.dispose();
+});
+
+test("muted sessions allow lesson-length pauses and subscribe to lifecycle messages", async () => {
+  for (const duration of [10, 120]) {
+    const app = setup(null, true, { duration });
+    await settle();
+    const pending = app.render().startConversation();
+    const overrides = app.starts[0][0];
+    assert.equal(
+      overrides.silenceTimeoutSeconds,
+      Math.min(duration * 60, 3600),
+    );
+    assert.ok(overrides.clientMessages.includes("speech-update"));
+    assert.ok(overrides.clientMessages.includes("status-update"));
+    app.client.emit("call-start");
+    app.startup.resolve({ id: "call" });
+    await pending;
+    app.dispose();
+  }
+});
+
+test("a typed first turn skips the stock greeting and shows a pending companion reply", async () => {
+  const app = setup();
+  await settle();
+  app.render().setDraft("Explain algebra");
+  const pending = app.render().startVoice({ muted: true, firstMessage: "Explain algebra" });
+  assert.equal(app.starts[0][0].firstMessageMode, "assistant-waits-for-user");
+  app.client.emit("call-start-success", { callId: "typed-call" });
+  app.startup.resolve({ id: "typed-call" });
+  await pending;
+  assert.equal(app.render().responsePending, true);
+  app.client.emit("message", {
+    type: "transcript",
+    transcriptType: "partial",
+    role: "assistant",
+    transcript: "Algebra",
+  });
+  assert.equal(app.render().responsePending, false);
+  assert.equal(app.render().messages.length, 1);
+  app.client.emit("message", {
+    type: "transcript",
+    transcriptType: "final",
+    role: "assistant",
+    transcript: "Algebra uses variables.",
+  });
+  app.render().setDraft("Give me an example");
+  await app.render().send();
+  assert.equal(app.render().responsePending, true);
+  app.client.emit("message", {
+    type: "speech-update",
+    role: "assistant",
+    status: "started",
+  });
+  assert.equal(app.render().responsePending, false);
+  assert.equal(app.render().speaking, true);
+  app.client.emit("message", {
+    type: "speech-update",
+    role: "assistant",
+    status: "stopped",
+  });
+  assert.equal(app.render().speaking, false);
+  app.dispose();
+});
+
+test("a final learner voice turn shows a pending reply until the assistant responds", async () => {
+  const app = setup();
+  await settle();
+  const pending = app.render().startVoice();
+  app.client.emit("call-start");
+  app.startup.resolve({ id: "voice-call" });
+  await pending;
+  app.client.emit("speech-start");
+  assert.equal(app.render().responsePending, false);
+  app.client.emit("speech-end");
+  app.client.emit("message", {
+    type: "transcript",
+    transcriptType: "final",
+    role: "user",
+    transcript: "Can you explain fractions?",
+  });
+  assert.equal(app.render().responsePending, true);
+  app.client.emit("message", {
+    type: "transcript",
+    transcriptType: "final",
+    role: "assistant",
+    transcript: "A fraction is part of a whole.",
+  });
+  assert.equal(app.render().responsePending, false);
+  app.dispose();
+});
+
+test("automatic call endings clear pending replies and preserve an explanation after saving", async () => {
+  const app = setup();
+  await settle();
+  const pending = app.render().startConversation();
+  app.client.emit("call-start");
+  app.startup.resolve({ id: "ended-call" });
+  await pending;
+  app.client.emit("message", {
+    type: "status-update",
+    status: "ended",
+    endedReason: "silence-timed-out",
+  });
+  app.client.emit("call-end");
+  await settle();
+  assert.equal(app.render().responsePending, false);
+  assert.match(app.render().callEndedMessage, /pause/);
+  assert.equal(app.render().callStatus, "idle");
+  app.dispose();
+});
+
+test("successful SDK startup activates a typed conversation when call-start is missing", async () => {
+  const app = setup();
+  await settle();
+  app.render().setDraft("What is a linear equation?");
+  const pending = app.render().startVoice({ muted: true, firstMessage: "What is a linear equation?" });
+  app.client.emit("call-start-success", { callId: "joined-call" });
+  app.startup.resolve({ id: "joined-call" });
+  await pending;
+
+  assert.equal(app.render().callStatus, "active");
+  assert.equal(app.render().muted, true);
+  assert.equal(app.render().draft, "");
+  assert.equal(app.sent.length, 1);
+  assert.equal(app.sent[0].message.content, "What is a linear equation?");
+  app.client.emit("message", {
+    type: "transcript",
+    transcriptType: "final",
+    role: "assistant",
+    transcript: "Let's work through an example.",
+  });
+  assert.equal(app.render().messages.length, 2);
+  // A delayed listening notification must not reset the conversation or resend.
+  app.client.emit("call-start");
+  app.client.emit("call-start-success", { callId: "joined-call" });
+  assert.equal(app.sent.length, 1);
+  assert.equal(app.render().messages.length, 2);
+  app.render().endVoice();
+  assert.equal(app.stops, 1);
+  app.client.emit("call-end");
+  await settle();
+  assert.equal(app.saves, 1);
+  app.dispose();
+});
+
+test("SDK startup success after call-start preserves the active conversation", async () => {
+  const app = setup();
+  await settle();
+  app.render().setDraft("Explain algebra");
+  const pending = app.render().startVoice({ muted: true, firstMessage: "Explain algebra" });
+  app.client.emit("call-start");
+  app.client.emit("message", {
+    type: "transcript",
+    transcriptType: "final",
+    role: "assistant",
+    transcript: "Let's practice.",
+  });
+  app.client.emit("call-start-success", { callId: "joined-call" });
+  app.startup.resolve({ id: "joined-call" });
+  await pending;
+  assert.equal(app.render().messages.length, 2);
+  assert.equal(app.sent.length, 1);
   app.dispose();
 });
 
@@ -276,7 +487,7 @@ test("only an open text session can be resumed from history", async () => {
   );
   assert.equal(app.render().openSavedSession(saved, true), true);
   assert.equal(app.render().textSessionId, 9);
-  assert.equal(app.render().isNavigationLocked(), true);
+  assert.equal(app.render().isNavigationLocked(), false);
   app.dispose();
 });
 
@@ -358,7 +569,7 @@ test("ending a text session preserves its visible conversation", async () => {
   app.dispose();
 });
 
-test("the persistent sidebar guard sees pending work before its UI rerenders", async () => {
+test("the sidebar guard blocks pending writes and permits navigation after text is saved", async () => {
   const app = setup(null, false);
   await settle();
   app.render().setDraft("Explain algebra");
@@ -373,7 +584,7 @@ test("the persistent sidebar guard sees pending work before its UI rerenders", a
     },
   });
   await pending;
-  assert.equal(state.isNavigationLocked(), true);
+  assert.equal(state.isNavigationLocked(), false);
   await app.render().endText();
   assert.equal(state.isNavigationLocked(), false);
   app.dispose();
@@ -403,7 +614,7 @@ test("a previous recap cannot start while a new Vapi conversation is connecting"
   const app = setup();
   await eligibleCall(app);
   app.render().setDraft("A new question");
-  const pending = app.render().send();
+  const pending = app.render().startVoice({ muted: true, firstMessage: "A new question" });
   await app.render().generateRecap();
   assert.equal(app.recapRequests, 0);
   app.client.emit("call-start");
@@ -430,5 +641,241 @@ test("pending recap generation blocks a new voice or text session", async () => 
   });
   await pending;
   assert.equal(app.render().recap.summary, "Previous call");
+  app.dispose();
+});
+
+function savedSession(id, content, extra = {}) {
+  return {
+    id,
+    interaction_mode: "voice",
+    ended_by_user: true,
+    canResume: false,
+    messages: JSON.stringify([{ role: "user", content }]),
+    created_at: `2026-10-${String(id).padStart(2, "0")}T04:00:00Z`,
+    learning_recap: null,
+    is_demo: false,
+    ...extra,
+  };
+}
+
+test("saved conversations stay stacked when a new call starts and receives messages", async () => {
+  const older = savedSession(1, "Old question");
+  const latest = savedSession(2, "Previous question");
+  const app = setup(
+    latest,
+    true,
+    {},
+    { data: [older, latest], nextCursor: null },
+  );
+  await settle();
+  app.render().setDraft("New question");
+  const pending = app.render().startVoice({ muted: true, firstMessage: "New question" });
+  app.client.emit("call-start");
+  app.startup.resolve({ id: "new-call" });
+  await pending;
+  app.client.emit("message", {
+    type: "transcript",
+    transcriptType: "final",
+    role: "assistant",
+    transcript: "New answer",
+  });
+  const content = app
+    .render()
+    .conversationSections.flatMap((section) =>
+      section.messages.map((message) => message.content),
+    );
+  assert.deepEqual(Array.from(content), [
+    "Old question",
+    "Previous question",
+    "New question",
+    "New answer",
+  ]);
+  app.render().endVoice();
+  app.client.emit("call-end");
+  await settle();
+  assert.equal(app.render().conversationSections.length, 3);
+  assert.equal(app.render().savedSessions.length, 3);
+  app.dispose();
+});
+
+test("new voice calls include real conversation context and exclude seeded demos", async () => {
+  const demo = savedSession(1, "Demo secret", { is_demo: true });
+  const real = savedSession(2, "I am learning fractions");
+  const app = setup(real, true, {}, { data: [demo, real], nextCursor: null });
+  await settle();
+  const pending = app.render().startConversation();
+  const context = app.starts[0][0].model.messages;
+  assert.ok(
+    context.some((message) => message.content === "I am learning fractions"),
+  );
+  assert.ok(!context.some((message) => message.content === "Demo secret"));
+  app.client.emit("call-start");
+  app.startup.resolve({ id: "context-call" });
+  await pending;
+  app.dispose();
+});
+
+test("older conversation pages prepend without duplicating already loaded sessions", async () => {
+  const oldest = savedSession(1, "Oldest");
+  const latest = savedSession(2, "Latest");
+  const app = setup(
+    latest,
+    true,
+    {},
+    {
+      data: [latest],
+      nextCursor: { createdAt: latest.created_at, id: latest.id },
+    },
+  );
+  app.setHistoryHandler(async () => ({
+    data: [oldest, latest],
+    nextCursor: null,
+  }));
+  await app.render().loadOlderHistory();
+  assert.deepEqual(
+    Array.from(app.render().savedSessions, (session) => session.id),
+    [1, 2],
+  );
+  assert.equal(app.render().hasOlderHistory, false);
+  app.dispose();
+});
+
+test("live autosaves serialize before final saving and keep the same conversation row", async () => {
+  const app = setup();
+  await settle();
+  const firstSave = deferred();
+  app.setSaveHandler(() => firstSave.promise);
+  const pending = app.render().startConversation();
+  app.client.emit("call-start");
+  app.startup.resolve({ id: "persistent-call" });
+  await pending;
+  app.render().setDraft("Keep this message");
+  await app.render().send();
+  await app.flushAutosave();
+  assert.equal(app.saves, 1);
+  assert.equal(app.savedSnapshots[0][6], "persistent-call");
+  assert.equal(app.savedSnapshots[0][5], false);
+  app.client.emit("message", {
+    type: "transcript",
+    transcriptType: "final",
+    role: "assistant",
+    transcript: "Saved answer",
+  });
+  app.render().endVoice();
+  app.client.emit("call-end");
+  await settle();
+  assert.equal(app.saves, 1);
+  app.setSaveHandler(async () => ({ data: { id: 8 } }));
+  firstSave.resolve({ data: { id: 8 } });
+  await settle();
+  await settle();
+  assert.equal(app.saves, 2);
+  assert.equal(app.savedSnapshots[1][5], true);
+  assert.ok(
+    JSON.parse(app.savedSnapshots[1][2]).some(
+      (message) => message.content === "Saved answer",
+    ),
+  );
+  assert.equal(app.render().savedSessions.length, 1);
+  assert.equal(app.render().callStatus, "idle");
+  app.dispose();
+});
+
+test("failed final saves retain the conversation and can be retried", async () => {
+  const app = setup();
+  await settle();
+  const pending = app.render().startConversation();
+  app.client.emit("call-start");
+  app.startup.resolve({ id: "retry-call" });
+  await pending;
+  app.render().setDraft("Keep my question");
+  await app.render().send();
+  app.setSaveHandler(async () => ({ error: "Temporary database failure" }));
+  app.render().endVoice();
+  app.client.emit("call-end");
+  await settle();
+  assert.equal(app.render().unsavedVoice, true);
+  assert.equal(
+    app.render().conversationSections[0].messages[0].content,
+    "Keep my question",
+  );
+  app.setSaveHandler(async () => ({ data: { id: 8 } }));
+  await app.render().retrySave();
+  assert.equal(app.render().unsavedVoice, false);
+  assert.equal(app.render().savedSessions.length, 1);
+  app.dispose();
+});
+
+test("unavailable initial history blocks new provider sessions until history can be recovered", async () => {
+  const app = setup(null, true, {}, undefined, true);
+  await settle();
+  app.render().setDraft("Continue our conversation");
+  const pending = app.render().send();
+  assert.equal(app.starts.length, 0);
+  assert.equal(await pending, false);
+  assert.equal(await app.render().startConversation(), false);
+  assert.equal(app.render().callStatus, "idle");
+  app.dispose();
+});
+
+test("a delayed older page cannot replace a session refreshed while it was loading", async () => {
+  const older = savedSession(1, "Old snapshot");
+  const latest = savedSession(2, "Latest");
+  const app = setup(
+    latest,
+    true,
+    {},
+    {
+      data: [latest],
+      nextCursor: { createdAt: latest.created_at, id: latest.id },
+    },
+  );
+  const page = deferred();
+  app.setHistoryHandler(() => page.promise);
+  const loading = app.render().loadOlderHistory();
+  app.render().openSavedSession(savedSession(1, "Freshly saved question"));
+  page.resolve({ data: [older], nextCursor: null });
+  await loading;
+  assert.equal(
+    JSON.parse(
+      app.render().savedSessions.find((session) => session.id === 1).messages,
+    )[0].content,
+    "Freshly saved question",
+  );
+  app.dispose();
+});
+
+test("ordinary typing uses Vapi text chat without opening a microphone session", async () => {
+  const demo = savedSession(1, "Demo turn", { is_demo: true });
+  const app = setup(demo, true, {}, { data: [demo], nextCursor: null });
+  await settle();
+  app.render().setDraft("Let's practice introductions");
+  const pending = app.render().send();
+  assert.equal(app.starts.length, 0);
+  assert.equal(app.render().busy, true);
+  assert.equal(app.render().draft, "");
+  assert.equal(app.render().conversationSections.at(-1).messages[0].content, "Let's practice introductions");
+  app.reply.resolve({ data: { sessionId: 4, messages: [
+    { role: "user", content: "Let's practice introductions" },
+    { role: "assistant", content: "Tell me a little about yourself." },
+  ] } });
+  assert.equal(await pending, true);
+  assert.equal(app.render().conversationSections.length, 2);
+  assert.equal(app.render().isNavigationLocked(), false);
+  assert.equal(app.render().messages.length, 2);
+  app.dispose();
+});
+
+test("a failed text request restores the draft and prior visible conversation", async () => {
+  const previous = savedSession(1, "Existing history");
+  const app = setup(previous);
+  await settle();
+  app.render().setDraft("Please continue");
+  const pending = app.render().send();
+  app.reply.resolve({ error: "Provider unavailable" });
+  assert.equal(await pending, false);
+  assert.equal(app.render().draft, "Please continue");
+  assert.equal(app.render().conversationSections.length, 1);
+  assert.equal(app.render().messages[0].content, "Existing history");
   app.dispose();
 });

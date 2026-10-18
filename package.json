@@ -2,8 +2,11 @@
   "name": "saas",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22.14.0"
+  },
   "scripts": {
-    "test:companion": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --test-isolation=none components/custom/companion-workspace/*.test.mjs lib/services/sessions-history.test.mjs lib/services/text-chat.test.mjs lib/vapi-muted-start.test.mjs",
+    "test:companion": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --test-isolation=none components/custom/companion-workspace/*.test.mjs lib/services/sessions-history.test.mjs lib/services/text-chat.test.mjs lib/conversation-context.test.mjs lib/vapi-muted-start.test.mjs",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
@@ -24,7 +27,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@supabase/supabase-js": "^2.50.0",
     "@tanstack/react-table": "^8.21.3",
-    "@vapi-ai/web": "^2.3.8",
+    "@vapi-ai/web": "^3.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

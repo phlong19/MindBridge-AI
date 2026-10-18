@@ -12,11 +12,10 @@ import {
 } from "lucide-react";
 import type { CompanionRow } from "@/types";
 import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/utils";
 import CompanionAvatar from "./CompanionAvatar";
 import LearningRecapPanel from "./LearningRecapPanel";
 import type { CompanionSessionState } from "./useCompanionSession";
-import CopyResponse from "./CopyResponse";
+import ConversationTimeline from "./ConversationTimeline";
 import SessionCountdown from "./SessionCountdown";
 import ConversationHistory from "./ConversationHistory";
 import { resumableTextSessionId } from "./session-messages";
@@ -39,10 +38,15 @@ export default function CompanionConversation({
   const pinned = useRef(true);
   const input = useRef<HTMLTextAreaElement>(null);
   const focusAfterStart = useRef(false);
+  const olderScrollAnchor = useRef<{ height: number; top: number } | null>(
+    null,
+  );
+  const initialHistoryView = useRef(true);
   const [hasNew, setHasNew] = useState(false);
   const voiceBusy =
     session.callStatus !== "idle" && session.callStatus !== "active";
   const sendDisabled =
+    historyError ||
     session.busy ||
     voiceBusy ||
     session.unsavedVoice ||
@@ -57,11 +61,45 @@ export default function CompanionConversation({
 
   useEffect(() => {
     if (!log.current) return;
+    if (olderScrollAnchor.current) {
+      if (!session.historyLoading) {
+        const anchor = olderScrollAnchor.current;
+        log.current.scrollTop =
+          anchor.top + log.current.scrollHeight - anchor.height;
+        olderScrollAnchor.current = null;
+      }
+      return;
+    }
     if (pinned.current) {
       log.current.scrollTop = log.current.scrollHeight;
       setHasNew(false);
     } else setHasNew(true);
-  }, [session.messages, session.busy, session.error, session.recapSessionId]);
+  }, [
+    session.messages,
+    session.savedSessions,
+    session.historyLoading,
+    session.busy,
+    session.responsePending,
+    session.error,
+    session.recapSessionId,
+  ]);
+
+  useEffect(() => {
+    if (initialHistoryView.current) {
+      initialHistoryView.current = false;
+      return;
+    }
+    if (!session.viewedSession) return;
+    const element = log.current?.querySelector<HTMLElement>(
+      `#conversation-session-${session.viewedSession.id}`,
+    );
+    if (element && log.current) {
+      pinned.current = false;
+      log.current.scrollTop +=
+        element.getBoundingClientRect().top -
+        log.current.getBoundingClientRect().top;
+    }
+  }, [session.viewedSession]);
 
   function scrollToLatest() {
     pinned.current = true;
@@ -105,25 +143,19 @@ export default function CompanionConversation({
               size="sm"
               className="border-primary/30 text-primary hover:text-primary h-10 rounded-xl bg-[#fff8f3] px-3 text-xs hover:bg-[#ffede4]"
               disabled={
-                session.busy || session.unsavedVoice || session.generatingRecap
+                historyError ||
+                session.busy ||
+                session.unsavedVoice ||
+                session.generatingRecap
               }
-              title={
-                session.textSessionId !== null
-                  ? "End this text session and start a new conversation"
-                  : "Start a session with your microphone muted"
-              }
+              title="Continue the conversation with a message"
               onClick={() => {
-                focusAfterStart.current = true;
-                if (session.voiceReady && companion.slug)
-                  void session.startConversation();
-                else input.current?.focus();
+                input.current?.focus();
               }}
             >
               <MessageSquareText className="size-4" />
               <span className="hidden sm:inline">
-                {session.textSessionId !== null
-                  ? "New conversation"
-                  : "Chat to start conversation"}
+                {session.conversationSections.length ? "Continue chat" : "Start chat"}
               </span>
               <span className="sm:hidden">Start chat</span>
             </Button>
@@ -150,8 +182,8 @@ export default function CompanionConversation({
             className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm"
           >
             <p>
-              Your previous session could not be loaded. You can still start a
-              new conversation.
+              Your previous messages could not be loaded. Retry before
+              continuing so your companion can follow the conversation.
             </p>
             <Button
               variant="link"
@@ -164,15 +196,44 @@ export default function CompanionConversation({
           </div>
         )}
         <p className="text-muted-foreground mb-6 text-center text-[11px]">
-          {session.completed
-            ? `Previous ${session.mode} session`
-            : callActive
-              ? session.muted
-                ? "Chat session"
-                : "Voice session"
-              : "Text session"}
+          {callActive
+            ? session.muted
+              ? "Chat session"
+              : "Voice session"
+            : "Your conversation"}
           {session.speaking && callActive ? " · Companion speaking" : ""}
         </p>
+        {session.hasOlderHistory && (
+          <div className="mb-5 text-center">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={session.historyLoading}
+              onClick={() => {
+                if (log.current)
+                  olderScrollAnchor.current = {
+                    height: log.current.scrollHeight,
+                    top: log.current.scrollTop,
+                  };
+                void session.loadOlderHistory();
+              }}
+            >
+              {session.historyLoading ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" /> Loading older
+                  messages…
+                </>
+              ) : (
+                "Load older messages"
+              )}
+            </Button>
+          </div>
+        )}
+        {session.historyLoadError && (
+          <p role="alert" className="mb-4 text-center text-xs text-red-700">
+            {session.historyLoadError}
+          </p>
+        )}
         <div
           role="log"
           aria-live="polite"
@@ -180,7 +241,9 @@ export default function CompanionConversation({
           aria-label="Conversation messages"
           className="flex flex-col gap-5"
         >
-          {!session.messages.length && (
+          {!session.conversationSections.some(
+            (section) => section.messages.length,
+          ) && (
             <div className="flex items-start gap-3">
               <CompanionAvatar
                 companion={companion}
@@ -214,50 +277,30 @@ export default function CompanionConversation({
                 </Button>
               </div>
             )}
-          {session.messages.map((message, index) => (
-            <div
-              key={`${index}-${message.role}`}
-              className={cn(
-                "flex items-start gap-3",
-                message.role === "user" && "justify-end",
-              )}
-            >
-              {message.role === "assistant" && (
-                <CompanionAvatar
-                  companion={companion}
-                  className="mt-1 size-8 rounded-lg"
-                />
-              )}
-              <div className="flex max-w-[88%] flex-col sm:max-w-[85%]">
-                <div
-                  className={cn(
-                    "overflow-hidden rounded-2xl px-4 py-3 text-sm leading-relaxed",
-                    message.role === "user" ? "bg-[#ffede4]" : "bg-muted/70",
-                  )}
-                >
-                  <span className="sr-only">
-                    {message.role === "user" ? userName : companion.name}:{" "}
-                  </span>
-                  <p className="[overflow-wrap:anywhere] break-words whitespace-pre-wrap">
-                    {message.content}
-                  </p>
-                </div>
-                {message.role === "assistant" && (
-                  <CopyResponse content={message.content} />
-                )}
-              </div>
-            </div>
-          ))}
-          {session.busy && (
+          <ConversationTimeline
+            sections={session.conversationSections}
+            companion={companion}
+            userName={userName}
+            selectedSessionId={session.selectedSessionId}
+          />
+          {(session.busy || session.responsePending) && (
             <p
               role="status"
               className="text-muted-foreground flex items-center gap-2 pl-11 text-xs"
             >
               <Loader2 className="size-3.5 animate-spin" />
-              Working on your text session…
+              {companion.name} is thinking…
             </p>
           )}
         </div>
+        {session.callEndedMessage && (
+          <p
+            role="status"
+            className="text-muted-foreground mt-4 text-center text-xs"
+          >
+            {session.callEndedMessage}
+          </p>
+        )}
         {session.error && (
           <div
             role="alert"
@@ -304,9 +347,9 @@ export default function CompanionConversation({
               : callActive
                 ? `Session active · ${session.muted ? "Microphone muted" : "Microphone on"}`
                 : session.textSessionId !== null
-                  ? "Text session · voice input starts a new session"
+                  ? "Text chat"
                   : session.completed
-                    ? "Start a new conversation or browse your history"
+                    ? "Continue chatting below, or enable voice input"
                     : "Ask a question or practice together"}
           </span>
           {session.textSessionId !== null && (
@@ -374,6 +417,7 @@ export default function CompanionConversation({
                 aria-pressed={callActive && !session.muted}
                 disabled={
                   voiceBusy ||
+                  historyError ||
                   session.busy ||
                   session.unsavedVoice ||
                   session.generatingRecap ||
@@ -389,7 +433,10 @@ export default function CompanionConversation({
                 }
                 onClick={() => {
                   if (callActive) session.toggleMute();
-                  else void session.startVoice({ muted: false });
+                  else {
+                    focusAfterStart.current = true;
+                    void session.startVoice({ muted: false });
+                  }
                 }}
               >
                 {callActive && session.muted ? (
