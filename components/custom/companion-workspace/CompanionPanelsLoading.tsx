@@ -1,15 +1,21 @@
+"use client";
+
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function CompanionPanelsLoading() {
+  const { t } = useI18n();
   return (
     <>
       <section
         role="status"
-        aria-label="Loading conversation"
+        aria-label={t("Loading conversation")}
         aria-busy="true"
         className="border-border/40 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border bg-white"
       >
-        <span className="sr-only">Loading conversation…</span>
+        <span className="sr-only">
+          <LocalizedText>Loading conversation…</LocalizedText>
+        </span>
         <div
           aria-hidden="true"
           className="border-border/60 flex items-center gap-3 border-b px-6 py-4"
@@ -34,11 +40,13 @@ export default function CompanionPanelsLoading() {
       </section>
       <section
         role="status"
-        aria-label="Loading companion information"
+        aria-label={t("Loading companion information")}
         aria-busy="true"
         className="border-border/40 hidden min-h-0 overflow-hidden rounded-2xl border bg-white xl:block"
       >
-        <span className="sr-only">Loading companion information…</span>
+        <span className="sr-only">
+          <LocalizedText>Loading companion information…</LocalizedText>
+        </span>
         <div
           aria-hidden="true"
           className="border-border/60 flex justify-around border-b p-4"

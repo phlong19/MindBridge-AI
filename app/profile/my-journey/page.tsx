@@ -1,3 +1,4 @@
+import { LocalizedText } from "@/lib/i18n/provider";
 import { ClientToast } from "@/components/custom/ClientToast";
 import CompanionsList from "@/components/custom/CompanionsList";
 import NoCompanions from "@/components/custom/NoCompanions";
@@ -79,7 +80,11 @@ async function page({ searchParams }: SearchParams) {
           />
           <div className="flex flex-col gap-2">
             <h1 className="text-2xl font-bold">
-              {user.firstName ? user.firstName + " " + user.lastName : "User"}
+              {user.firstName ? (
+                user.firstName + " " + user.lastName
+              ) : (
+                <LocalizedText>User</LocalizedText>
+              )}
             </h1>
 
             <TypographyP className="text-muted-foreground text-sm">
@@ -90,34 +95,28 @@ async function page({ searchParams }: SearchParams) {
         <div className="flex gap-2.5">
           <div className="flex h-fit flex-col gap-2 rounded-lg border border-black p-3">
             <div className="flex items-center gap-2">
-              <Image
-                src="/icons/check.svg"
-                alt="icon checkmark"
-                width={22}
-                height={22}
-              />
+              <Image src="/icons/check.svg" alt="" width={22} height={22} />
               <TypographyP className="text-lg font-bold">
                 {Array.isArray(sessionsHistory) && sessionsHistory.length
                   ? sessionsHistory.length
                   : 0}
               </TypographyP>
             </div>
-            <div>Lessons completed</div>
+            <div>
+              <LocalizedText>Lessons completed</LocalizedText>
+            </div>
           </div>
           <div className="flex h-fit flex-col gap-2 rounded-lg border border-black p-3">
             <div className="flex items-center gap-2">
-              <Image
-                src="/icons/cap.svg"
-                alt="icon checkmark"
-                width={22}
-                height={22}
-              />
+              <Image src="/icons/cap.svg" alt="" width={22} height={22} />
 
               <TypographyP className="text-lg font-bold">
                 {companions?.length}
               </TypographyP>
             </div>
-            <div>Companions created</div>
+            <div>
+              <LocalizedText>Companions created</LocalizedText>
+            </div>
           </div>
         </div>
       </section>
@@ -126,7 +125,7 @@ async function page({ searchParams }: SearchParams) {
         <Accordion type="multiple">
           <AccordionItem value="sessions">
             <AccordionTrigger className="data-[state=open]:text-primary text-xl font-semibold">
-              Recent Sessions
+              <LocalizedText>Recent Sessions</LocalizedText>
             </AccordionTrigger>
             <AccordionContent>
               {Array.isArray(sessionsHistory) ? (
@@ -139,7 +138,8 @@ async function page({ searchParams }: SearchParams) {
 
           <AccordionItem value="companions">
             <AccordionTrigger className="data-[state=open]:text-primary text-xl font-semibold">
-              My Companions ({count || 0})
+              <LocalizedText>My Companions (</LocalizedText>
+              {count || 0})
             </AccordionTrigger>
             <AccordionContent>
               {companions?.length ? (
@@ -152,7 +152,8 @@ async function page({ searchParams }: SearchParams) {
 
           <AccordionItem value="bookmarked">
             <AccordionTrigger className="data-[state=open]:text-primary text-xl font-semibold">
-              Bookmarked Companions ({bookmarkedCount || 0})
+              <LocalizedText>Bookmarked Companions (</LocalizedText>
+              {bookmarkedCount || 0})
             </AccordionTrigger>
 
             <AccordionContent>

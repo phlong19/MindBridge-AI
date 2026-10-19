@@ -1,3 +1,6 @@
+"use client";
+
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import React from "react";
 import {
@@ -28,20 +31,31 @@ const CompanionsList = ({
   companions: Companion[];
   className?: string;
 }) => {
+  const { t } = useI18n();
   return (
     <article className={cn("companion-list", className)}>
-      {title && <h2 className="mb-4 text-3xl font-bold">{title}</h2>}
+      {title && (
+        <h2 className="mb-4 text-3xl font-bold">
+          <LocalizedText>{title}</LocalizedText>
+        </h2>
+      )}
       {description && (
-        <p className="text-muted-foreground mb-4 text-sm">{description}</p>
+        <p className="text-muted-foreground mb-4 text-sm">
+          <LocalizedText>{description}</LocalizedText>
+        </p>
       )}
       {!!companions.length ? (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-2/3 text-lg">Lessons</TableHead>
-              <TableHead className="text-lg">Subject</TableHead>
+              <TableHead className="w-2/3 text-lg">
+                <LocalizedText>Lessons</LocalizedText>
+              </TableHead>
+              <TableHead className="text-lg">
+                <LocalizedText>Subject</LocalizedText>
+              </TableHead>
               <TableHead className="text-right text-lg">
-                Lesson length
+                <LocalizedText>Lesson length</LocalizedText>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -75,7 +89,7 @@ const CompanionsList = ({
                 </TableCell>
                 <TableCell>
                   <div className="subject-badge w-fit max-md:hidden">
-                    {subject}
+                    <LocalizedText>{subject}</LocalizedText>
                   </div>
 
                   <SubjectIcon
@@ -89,11 +103,14 @@ const CompanionsList = ({
                 <TableCell>
                   <div className="flex w-full items-center justify-end gap-2">
                     <p className="text-base md:text-xl">
-                      {duration} <span className="">mins</span>
+                      {duration}{" "}
+                      <span className="">
+                        <LocalizedText>mins</LocalizedText>
+                      </span>
                     </p>
                     <Image
                       src="/icons/clock.svg"
-                      alt="minutes"
+                      alt={t("minutes")}
                       width={15}
                       height={15}
                       className="max-md:hidden"
@@ -105,7 +122,9 @@ const CompanionsList = ({
           </TableBody>
         </Table>
       ) : (
-        <TypographyH4 className="font-normal">{emptyMessage}</TypographyH4>
+        <TypographyH4 className="font-normal">
+          <LocalizedText>{emptyMessage}</LocalizedText>
+        </TypographyH4>
       )}
     </article>
   );

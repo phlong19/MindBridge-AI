@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import { Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import type { CompanionSessionState } from "./useCompanionSession";
@@ -9,15 +10,16 @@ export default function LearningRecapPanel({
 }: {
   session: CompanionSessionState;
 }) {
+  const { t } = useI18n();
   if (!session.recap && !session.recapSessionId) return null;
   return (
     <section
       className="border-primary/15 rounded-2xl border bg-[#fff8f3] p-4"
-      aria-label="Learning recap"
+      aria-label={t("Learning recap")}
     >
       <h3 className="mb-3 flex items-center gap-2 font-semibold">
         <Sparkles className="text-primary size-4" />
-        {session.recap ? "Learning recap" : "Create a learning recap?"}
+        {session.recap ? t("Learning recap") : t("Create a learning recap?")}
       </h3>
       {session.recap ? (
         <div className="space-y-4 text-sm leading-relaxed">
@@ -32,7 +34,7 @@ export default function LearningRecapPanel({
             ([title, entries]) =>
               entries.length > 0 && (
                 <div key={title}>
-                  <h4 className="mb-1 font-medium">{title}</h4>
+                  <h4 className="mb-1 font-medium">{t(title)}</h4>
                   <ul className="text-muted-foreground list-disc space-y-1 pl-4">
                     {entries.map((entry, index) => (
                       <li key={index}>{entry}</li>
@@ -45,8 +47,10 @@ export default function LearningRecapPanel({
       ) : (
         <>
           <p className="text-muted-foreground mb-3 text-sm leading-relaxed">
-            Generate a summary of what you covered and what to practice next.
-            Your saved call is analyzed only when you choose Generate.
+            <LocalizedText>
+              Generate a summary of what you covered and what to practice next.
+              Your saved call is analyzed only when you choose Generate.
+            </LocalizedText>
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -64,7 +68,7 @@ export default function LearningRecapPanel({
               {session.generatingRecap && (
                 <Loader2 className="size-4 animate-spin" />
               )}
-              {session.generatingRecap ? "Generating…" : "Generate"}
+              {session.generatingRecap ? t("Generating…") : t("Generate")}
             </Button>
             <Button
               variant="ghost"
@@ -72,7 +76,7 @@ export default function LearningRecapPanel({
               disabled={session.generatingRecap}
               onClick={session.dismissRecap}
             >
-              Not now
+              <LocalizedText>Not now</LocalizedText>
             </Button>
           </div>
         </>

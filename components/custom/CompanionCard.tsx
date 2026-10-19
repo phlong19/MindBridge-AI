@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import { Database } from "@/types/supabase";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,7 +10,11 @@ import { savedBookmark } from "@/lib/services/bookmarks";
 import { ClientToast } from "./ClientToast";
 import { ToastTypes } from "@/lib/utils";
 import { Bookmark } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/Tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/Tooltip";
 
 type Props = Database["public"]["Tables"]["companions"]["Row"] & {
   color: string;
@@ -28,6 +33,7 @@ const CompanionCard = ({
   isPublish,
   isBookmarked,
 }: Props) => {
+  const { t } = useI18n();
   const [hover, setHover] = useState(false);
   const [errorResponse, setErrorResponse] = useState<{
     type: ToastTypes;
@@ -44,9 +50,7 @@ const CompanionCard = ({
     const response = await savedBookmark(id);
     setErrorResponse(response);
     if (response.type === "success") {
-      setBookmark(!bookmark);
-    } else {
-      setBookmark(false);
+      setBookmark(response.bookmarked);
     }
   }
 
@@ -58,9 +62,13 @@ const CompanionCard = ({
       <ClientToast {...errorResponse} />
       <div className="flex justify-between">
         <div className="flex items-center gap-1">
-          <Badge className="subject-badge bg-black text-white">{subject}</Badge>
+          <Badge className="subject-badge bg-black text-white">
+            {t(subject ?? "")}
+          </Badge>
           {isPublish && (
-            <Badge className="subject-badge !bg-green-600">Community</Badge>
+            <Badge className="subject-badge !bg-green-600">
+              <LocalizedText>Community</LocalizedText>
+            </Badge>
           )}
         </div>
 
@@ -68,7 +76,7 @@ const CompanionCard = ({
           <TooltipTrigger asChild>
             <button
               type="button"
-              aria-label={bookmark ? "Remove bookmark" : "Add bookmark"}
+              aria-label={bookmark ? t("Remove bookmark") : t("Add bookmark")}
               aria-pressed={!!bookmark}
               className="companion-bookmark"
               onClick={() => onBookmark()}
@@ -82,7 +90,7 @@ const CompanionCard = ({
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            {bookmark ? "Remove bookmark" : "Add bookmark"}
+            {bookmark ? t("Remove bookmark") : t("Add bookmark")}
           </TooltipContent>
         </Tooltip>
       </div>
@@ -94,11 +102,13 @@ const CompanionCard = ({
       <div className="flex items-center gap-2">
         <Image
           src="/icons/clock.svg"
-          alt="duration"
+          alt={t("duration")}
           width={13.5}
           height={13.5}
         />
-        <p className="text-sm">{duration} minutes</p>
+        <p className="text-sm">
+          {duration} <LocalizedText>minutes</LocalizedText>
+        </p>
       </div>
 
       <Link href={`/companions/${id}`} className="w-full">
@@ -106,10 +116,10 @@ const CompanionCard = ({
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
           type="button"
-          aria-label="View lesson button"
+          aria-label={t("View lesson button")}
           className="btn-primary w-full justify-center border border-black/80 capitalize"
         >
-          view lesson
+          <LocalizedText>view lesson</LocalizedText>
         </button>
       </Link>
     </article>

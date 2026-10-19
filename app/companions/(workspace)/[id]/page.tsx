@@ -8,6 +8,7 @@ import { getVoicesList } from "@/lib/services/voices";
 import { error as errorMessage } from "@/constants/message";
 import { navLinks } from "@/constants";
 import { getSignInPath } from "@/lib/auth-redirect";
+import { getCompanionBookmarkStatus } from "@/lib/services/bookmarks";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -28,10 +29,12 @@ const Page = async ({ params }: Props) => {
       />
     );
 
-  const [historyResult, voicesResult] = await Promise.allSettled([
-    getCompanionConversation(id),
-    getVoicesList(),
-  ]);
+  const [historyResult, voicesResult, bookmarkResult] =
+    await Promise.allSettled([
+      getCompanionConversation(id),
+      getVoicesList(),
+      getCompanionBookmarkStatus(id),
+    ]);
   const history =
     historyResult.status === "fulfilled" ? historyResult.value : null;
   const conversation =
@@ -50,13 +53,16 @@ const Page = async ({ params }: Props) => {
       key={`${id}-${historyError ? "history-error" : (latest?.id ?? "new")}`}
       companion={companion}
       userId={user.id}
-      userName={user.firstName ?? user.lastName ?? user.username ?? "You"}
+      userName={user.firstName ?? user.lastName ?? user.username ?? ""}
       initialSession={latest}
       initialConversation={conversation}
       voiceName={
         voices?.find((voice) => voice.id === companion.voiceId)?.name ?? null
       }
       historyError={historyError}
+      initialBookmarked={
+        bookmarkResult.status === "fulfilled" ? bookmarkResult.value : null
+      }
     />
   );
 };

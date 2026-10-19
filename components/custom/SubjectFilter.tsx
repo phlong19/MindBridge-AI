@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import React from "react";
 import {
   Select,
@@ -12,6 +13,7 @@ import { subjects } from "@/constants";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const SubjectFilter = () => {
+  const { t } = useI18n();
   const router = useRouter();
   const pathName = usePathname();
   const searchParams = useSearchParams();
@@ -30,13 +32,15 @@ const SubjectFilter = () => {
     <div className="w-full md:w-40">
       <Select defaultValue="/" onValueChange={onChange}>
         <SelectTrigger>
-          <SelectValue placeholder="subject" />
+          <SelectValue placeholder={t("subject")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="/">All subjects</SelectItem>
+          <SelectItem value="/">
+            <LocalizedText>All subjects</LocalizedText>
+          </SelectItem>
           {subjects.map((subject) => (
             <SelectItem key={subject} value={subject}>
-              {subject}
+              {t(subject)}
             </SelectItem>
           ))}
         </SelectContent>

@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalizedText } from "@/lib/i18n/provider";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "../ui/Button";
 import { useRouter } from "next/navigation";
@@ -15,7 +16,7 @@ function GoBackButton({ className }: { className?: string }) {
       variant="link"
     >
       <ArrowLeft />
-      Go back
+      <LocalizedText>Go back</LocalizedText>
     </Button>
   );
 }

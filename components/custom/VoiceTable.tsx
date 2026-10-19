@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import {
   Table,
   TableBody,
@@ -66,6 +67,7 @@ interface Props {
 }
 
 function VoiceTable({ data, lastUpdated }: Props) {
+  const { t } = useI18n();
   const [nameFilter, setNameFilter] = useState("");
   const [currentPlayingUrl, setCurrentPlayingUrl] = useState<string | null>(
     null,
@@ -100,7 +102,7 @@ function VoiceTable({ data, lastUpdated }: Props) {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Name
+            <LocalizedText>Name</LocalizedText>{" "}
             <ChevronUpDown sorting={column.getIsSorted()} />
           </Button>
         ),
@@ -110,30 +112,30 @@ function VoiceTable({ data, lastUpdated }: Props) {
       },
       {
         accessorKey: "gender",
-        header: "Gender",
+        header: t("Gender"),
         cell: ({ getValue }) => (
-          <div className="capitalize">{getValue() as string}</div>
+          <div className="capitalize">{t(getValue() as string)}</div>
         ),
         filterFn: "equals",
       },
       {
         accessorKey: "accent",
-        header: "Accent",
+        header: t("Accent"),
         cell: ({ getValue }) => (
-          <div className="capitalize">{getValue() as string}</div>
+          <div className="capitalize">{t(getValue() as string)}</div>
         ),
         filterFn: "equals",
       },
       {
         accessorKey: "style",
-        header: "Style",
+        header: t("Style"),
         cell: ({ getValue }) => (
-          <div className="capitalize">{getValue() as string}</div>
+          <div className="capitalize">{t(getValue() as string)}</div>
         ),
       },
       {
         accessorKey: "description",
-        header: "Description",
+        header: t("Description"),
         cell: ({ getValue }) => {
           const description = getValue() as string;
 
@@ -155,7 +157,7 @@ function VoiceTable({ data, lastUpdated }: Props) {
       },
       {
         accessorKey: "previewUrl",
-        header: "Preview",
+        header: t("Preview"),
         cell: ({ getValue }) => {
           const url = getValue() as string;
           const isPlaying = currentPlayingUrl === url;
@@ -183,7 +185,10 @@ function VoiceTable({ data, lastUpdated }: Props) {
               newAudio.onerror = () => {
                 setCurrentPlayingUrl(null);
                 audioRef.current = null;
-                toast.error(error.cantPlayVoicePreview, getToastStyle("error"));
+                toast.error(
+                  t(error.cantPlayVoicePreview),
+                  getToastStyle("error"),
+                );
               };
             }
           }
@@ -202,7 +207,7 @@ function VoiceTable({ data, lastUpdated }: Props) {
         },
       },
     ],
-    [currentPlayingUrl],
+    [currentPlayingUrl, t],
   );
 
   useEffect(() => {
@@ -256,10 +261,12 @@ function VoiceTable({ data, lastUpdated }: Props) {
   return (
     <div>
       <div>
-        <TypographyH3>Available voices</TypographyH3>
+        <TypographyH3>
+          <LocalizedText>Available voices</LocalizedText>
+        </TypographyH3>
 
         <TypographyP className="text-muted-foreground !mt-0 !mb-3">
-          Last updated at {lastUpdated}
+          <LocalizedText>Last updated at</LocalizedText> {lastUpdated}
         </TypographyP>
       </div>
       <div className="flex w-full flex-col items-center gap-2 md:mb-3 md:flex-row">
@@ -280,8 +287,8 @@ function VoiceTable({ data, lastUpdated }: Props) {
               searchable={false}
               name="gender"
               data={[
-                { label: "Male", value: "male" },
-                { label: "Female", value: "female" },
+                { label: t("Male"), value: "male" },
+                { label: t("Female"), value: "female" },
               ]}
               clearable
               currentValue={currentGenderFilter}
@@ -294,7 +301,7 @@ function VoiceTable({ data, lastUpdated }: Props) {
           {/* search input */}
           <div className="relative grow min-xl:w-full">
             <Input
-              placeholder="Filter by name..."
+              placeholder={t("Filter by name...")}
               value={nameFilter}
               onChange={(e) => updateNameFilter(e.target.value)}
             />
@@ -308,7 +315,9 @@ function VoiceTable({ data, lastUpdated }: Props) {
                     <X size={16} />
                   </div>
                 </TooltipTrigger>
-                <TooltipContent>Clear</TooltipContent>
+                <TooltipContent>
+                  <LocalizedText>Clear</LocalizedText>
+                </TooltipContent>
               </Tooltip>
             )}
           </div>
@@ -337,14 +346,14 @@ function VoiceTable({ data, lastUpdated }: Props) {
                 .map((column) => {
                   return (
                     <DropdownMenuCheckboxItem
-                      key={column.id}
+                      key={t(column.id)}
                       className="capitalize"
                       checked={column.getIsVisible()}
                       onCheckedChange={(value) =>
                         column.toggleVisibility(!!value)
                       }
                     >
-                      {column.id}
+                      {t(column.id)}
                     </DropdownMenuCheckboxItem>
                   );
                 })}
@@ -387,7 +396,7 @@ function VoiceTable({ data, lastUpdated }: Props) {
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                <LocalizedText>No results.</LocalizedText>
               </TableCell>
             </TableRow>
           )}
@@ -397,13 +406,15 @@ function VoiceTable({ data, lastUpdated }: Props) {
             <TableCell colSpan={6}>
               <div className="flex flex-col items-center justify-between px-2 max-md:gap-3 max-md:p-0 max-sm:items-start md:flex-row">
                 <div className="text-muted-foreground flex-1 text-sm max-sm:self-start">
-                  Total {totalLength} items. Showing{" "}
-                  {table.getFilteredRowModel().rows.length} result(s).
+                  <LocalizedText>Total</LocalizedText> {totalLength}{" "}
+                  <LocalizedText>items. Showing</LocalizedText>{" "}
+                  {table.getFilteredRowModel().rows.length}{" "}
+                  <LocalizedText>result(s).</LocalizedText>
                 </div>
                 <div className="flex items-center space-x-6 lg:space-x-8">
                   <div className="flex flex-col items-center space-x-2 max-sm:gap-2 sm:flex-row">
                     <p className="min-w-25 text-sm font-medium">
-                      Rows per page
+                      <LocalizedText>Rows per page</LocalizedText>
                     </p>
                     <Select
                       value={`${table.getState().pagination.pageSize}`}
@@ -426,8 +437,9 @@ function VoiceTable({ data, lastUpdated }: Props) {
                     </Select>
                   </div>
                   <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                    Page {table.getState().pagination.pageIndex + 1} of{" "}
-                    {table.getPageCount()}
+                    <LocalizedText>Page</LocalizedText>{" "}
+                    {table.getState().pagination.pageIndex + 1}{" "}
+                    <LocalizedText>of</LocalizedText> {table.getPageCount()}
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button
@@ -437,7 +449,9 @@ function VoiceTable({ data, lastUpdated }: Props) {
                       onClick={() => table.setPageIndex(0)}
                       disabled={!table.getCanPreviousPage()}
                     >
-                      <span className="sr-only">Go to first page</span>
+                      <span className="sr-only">
+                        <LocalizedText>Go to first page</LocalizedText>
+                      </span>
                       <ChevronsLeft />
                     </Button>
                     <Button
@@ -447,7 +461,9 @@ function VoiceTable({ data, lastUpdated }: Props) {
                       onClick={() => table.previousPage()}
                       disabled={!table.getCanPreviousPage()}
                     >
-                      <span className="sr-only">Go to previous page</span>
+                      <span className="sr-only">
+                        <LocalizedText>Go to previous page</LocalizedText>
+                      </span>
                       <ChevronLeft />
                     </Button>
                     {/* render list of number buttons */}
@@ -458,7 +474,9 @@ function VoiceTable({ data, lastUpdated }: Props) {
                       onClick={() => table.nextPage()}
                       disabled={!table.getCanNextPage()}
                     >
-                      <span className="sr-only">Go to next page</span>
+                      <span className="sr-only">
+                        <LocalizedText>Go to next page</LocalizedText>
+                      </span>
                       <ChevronRight />
                     </Button>
                     <Button
@@ -470,7 +488,9 @@ function VoiceTable({ data, lastUpdated }: Props) {
                       }
                       disabled={!table.getCanNextPage()}
                     >
-                      <span className="sr-only">Go to last page</span>
+                      <span className="sr-only">
+                        <LocalizedText>Go to last page</LocalizedText>
+                      </span>
                       <ChevronsRight />
                     </Button>
                   </div>

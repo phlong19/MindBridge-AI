@@ -2,15 +2,18 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/custom/Navbar";
-import { ClerkProvider } from "@clerk/nextjs";
+import LocalizedClerkProvider from "@/components/auth/LocalizedClerkProvider";
+import { I18nProvider } from "@/lib/i18n/provider";
+import { getLocale } from "@/lib/i18n/server";
+import { translate } from "@/lib/i18n/translate";
 import { Toaster } from "@/components/ui/Toast";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
-  subsets: ["latin"],
+  subsets: ["latin", "vietnamese"],
 });
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: "MindBridge AI - Your trusted learning companions",
   description: "Real-time AI Teaching / E-Learning Platform",
   creator: "phl19.dev@gmail.com",
@@ -37,20 +40,38 @@ export const metadata: Metadata = {
   category: "AI voice learning assistant",
 };
 
-export default function RootLayout({
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  return {
+    ...metadata,
+    title: translate(
+      locale,
+      "MindBridge AI - Your trusted learning companions",
+    ),
+    description: translate(
+      locale,
+      "Real-time AI Teaching / E-Learning Platform",
+    ),
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
   return (
-    <ClerkProvider appearance={{ variables: { colorPrimary: "#fe5933" } }}>
-      <html lang="en">
-        <body className={`${bricolage.variable} antialiased`}>
-          <Toaster duration={8000} />
-          <Navbar />
-          {children}
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang={locale}>
+      <body className={`${bricolage.variable} antialiased`}>
+        <I18nProvider initialLocale={locale}>
+          <LocalizedClerkProvider>
+            <Toaster duration={8000} />
+            <Navbar />
+            {children}
+          </LocalizedClerkProvider>
+        </I18nProvider>
+      </body>
+    </html>
   );
 }

@@ -13,7 +13,7 @@ export const getSubjectColor = (subject: string) => {
 };
 
 export const configureAssistant = (slug: string, duration: number) => {
-  const assistant: CreateAssistantDTO = {
+  const assistant: CreateAssistantDTO & { silenceTimeoutSeconds?: number } = {
     name: "Companion",
     firstMessage:
       "Hello, let's start the session. Today we'll be talking about {{ topic }}.",

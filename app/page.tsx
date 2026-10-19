@@ -1,3 +1,4 @@
+import { LocalizedText } from "@/lib/i18n/provider";
 import CompanionCard from "@/components/custom/CompanionCard";
 import CompanionsList from "@/components/custom/CompanionsList";
 import CTA from "@/components/custom/CTA";
@@ -16,7 +17,9 @@ async function Page() {
 
   return (
     <main>
-      <h1 className="text-2xl underline">Popular Community Companions</h1>
+      <h1 className="text-2xl underline">
+        <LocalizedText>Popular Community Companions</LocalizedText>
+      </h1>
 
       {error && <ClientToast title={error} message={errorDescription} />}
 

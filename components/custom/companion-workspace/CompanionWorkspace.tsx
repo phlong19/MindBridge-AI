@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import { useEffect, useState } from "react";
 import { Info, PanelLeft, X } from "lucide-react";
 import type { CompanionRow } from "@/types";
@@ -28,6 +29,7 @@ export default function CompanionWorkspace({
   initialConversation,
   voiceName,
   historyError,
+  initialBookmarked,
 }: {
   companion: CompanionRow;
   userId: string;
@@ -36,7 +38,9 @@ export default function CompanionWorkspace({
   initialConversation: ConversationPage;
   voiceName: string | null;
   historyError: boolean;
+  initialBookmarked: boolean | null;
 }) {
+  const { t } = useI18n();
   const session = useCompanionSession(
     companion,
     userId,
@@ -72,24 +76,26 @@ export default function CompanionWorkspace({
             variant="outline"
             size="icon"
             className="size-10 rounded-xl md:hidden"
-            aria-label="Open companion list"
+            aria-label={t("Open companion list")}
           >
             <PanelLeft className="size-4" />
           </Button>
         </DrawerTrigger>
-        <DrawerContent className="!w-[min(90vw,340px)] bg-white">
+        <DrawerContent className="!w-[min(90vw,380px)] bg-white">
           <DrawerHeader className="flex-row items-center justify-between border-b">
             <div>
-              <DrawerTitle>Companions</DrawerTitle>
+              <DrawerTitle>
+                <LocalizedText>Companions</LocalizedText>
+              </DrawerTitle>
               <DrawerDescription>
-                Choose your learning companion
+                <LocalizedText>Choose your learning companion</LocalizedText>
               </DrawerDescription>
             </div>
             <DrawerClose asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Close companion list"
+                aria-label={t("Close companion list")}
               >
                 <X className="size-4" />
               </Button>
@@ -116,7 +122,7 @@ export default function CompanionWorkspace({
             variant="outline"
             size="icon"
             className="size-10 rounded-xl xl:hidden"
-            aria-label="Open companion details"
+            aria-label={t("Open companion details")}
           >
             <Info className="size-4" />
           </Button>
@@ -124,16 +130,20 @@ export default function CompanionWorkspace({
         <DrawerContent className="!w-[min(90vw,400px)] bg-white">
           <DrawerHeader className="flex-row items-center justify-between border-b">
             <div>
-              <DrawerTitle>Companion details</DrawerTitle>
+              <DrawerTitle>
+                <LocalizedText>Companion details</LocalizedText>
+              </DrawerTitle>
               <DrawerDescription>
-                About, preferences, and learning recap
+                <LocalizedText>
+                  About, preferences, and learning recap
+                </LocalizedText>
               </DrawerDescription>
             </div>
             <DrawerClose asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Close companion details"
+                aria-label={t("Close companion details")}
               >
                 <X className="size-4" />
               </Button>
@@ -160,6 +170,7 @@ export default function CompanionWorkspace({
           session={session}
           panelControls={panelControls}
           historyError={historyError}
+          initialBookmarked={initialBookmarked}
         />
       </div>
       <div className="border-border/40 hidden min-h-0 overflow-hidden rounded-2xl border bg-white xl:block">
