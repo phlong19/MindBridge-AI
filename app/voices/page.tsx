@@ -7,9 +7,10 @@ import { getVoicesList } from "@/lib/services/voices";
 import { Voice } from "@/types";
 import { toast } from "sonner";
 import { getToastStyle } from "@/lib/utils";
-import dayjs from "dayjs";
+import { useI18n } from "@/lib/i18n/provider";
 
 const Page = () => {
+  const { t, locale } = useI18n();
   const [data, setData] = useState<Voice[]>([]);
   const [error, setError] = useState<{
     message: string;
@@ -17,7 +18,10 @@ const Page = () => {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const formattedLastUpdate = data[0]?.createdAt
-    ? dayjs(data[0].createdAt).format("dddd, MMM DD YYYY - HH:mm:ss A UTCZ")
+    ? new Date(data[0].createdAt).toLocaleString(
+        locale === "vi" ? "vi-VN" : "en-US",
+        { timeZone: "Asia/Bangkok", dateStyle: "long", timeStyle: "medium" },
+      )
     : undefined;
 
   useEffect(() => {
@@ -44,11 +48,11 @@ const Page = () => {
   useEffect(() => {
     if (!error) return;
 
-    toast.error(error.message, {
+    toast.error(t(error.message), {
       ...getToastStyle("error"),
-      description: error.description,
+      description: error.description ? t(error.description) : undefined,
     });
-  }, [error]);
+  }, [error, t]);
 
   if (loading) return <Loading />;
 

@@ -88,15 +88,37 @@ server action checks the authenticated admin ID and writes with the server-only
 Recheck that Vapi still lists the voices and ElevenLabs provider IDs used by
 your app; voice availability and prices may have changed.
 
-## 4. Text chat and optional learning recaps
+## 4. Voice sessions, typed messages, and optional learning recaps
 
-Apply `20261014030000_add_learning_recap.sql` before using text chat or recap
-generation.
+Apply `20261014030000_add_learning_recap.sql` before saving voice sessions,
+sending typed messages, or generating recaps. It adds `vapi_call_id` and the other
+session metadata fields used by the companion workspace. If saving reports a
+missing column, keep the conversation page open, apply this migration, and use
+**Retry saving call** to save the retained transcript.
+Also apply `20261018000000_add_conversation_timeline.sql` before using saved
+conversation history. It adds `is_demo` (false for new conversations) and a
+unique index on `(user_id, companion_id, vapi_call_id)` so repeated saves of
+the same voice call update the existing row. Null call IDs remain valid for
+text and legacy sessions. Existing duplicate non-null call IDs cause the
+migration to fail rather than discard any transcripts.
+
+The timeline migration identifies the three original sample sessions by
+their exact seed user, companion IDs, and complete message strings. It marks
+only those rows as demos and reverses their message arrays to match the
+voice client's newest-first storage. Other conversations are preserved.
+Saved real sessions and explicitly labeled demo sessions can then be shown
+separately in the companion conversation stack.
+
+Both typed and spoken messages use Vapi voice sessions. Sending a typed message
+starts a call with the microphone muted; the first question is included in the
+call's initial model context and the assistant generates a spoken reply. Later
+typed messages join the active call. Final transcripts are saved to that user's
+private `session-history` row. The workspace no longer calls Vapi's Chat API.
+Old text transcripts remain readable, and an open legacy text session is closed
+before a new voice session starts.
+
 Set the server-only `VAPI_PRIVATE_API_KEY` environment variable in local and
-deployed environments. The companion room's **Open text chat** action uses
-Vapi's Chat API without opening a microphone session. Text conversations are
-saved to that user's private `session-history` row as they go. Vapi's current
-usage-based Chat API may require a payment method and a completed purchase.
+deployed environments if learning recaps are enabled.
 
 The app offers a learning recap only after a user-ended voice call of at least
 60 seconds with at least two student turns. Vapi analyzes its saved call
@@ -117,10 +139,20 @@ With a **second Clerk account**, confirm private companions, bookmarks,
 and transcripts from the first account cannot be queried. Confirm the homepage
 can display published companion cards without exposing message text.
 
-**Known limits:** No new Supabase project or environment credentials have been
-configured by these commits. This migration has not been run against your
-Supabase project and cannot replace missing historical data. If a backup is
-recovered later, compare its exact database schema and data before migrating.
+**Applied status:** The Supabase project configured
+in `.env.local` has all five repository migrations recorded through
+`20261018000000`. The pending recap and conversation timeline migrations were
+validated with a transaction rollback, then committed together with a
+five-second lock timeout and a PostgREST schema reload. Follow-up inspection
+confirmed the new columns, full unique call-save index, and migration ledger.
+All three existing sessions were preserved and identified as the exact demo
+fixtures; no real saved sessions were present at migration time. Transcript
+normalization, unchanged ownership/privacy, and call conflict-target inference
+were checked before commit.
+
+The migration does not recover missing historical data or configure a
+production deployment's environment. If a backup is recovered later, compare
+its exact database schema and data before migrating.
 
 ## 6. Prevent this recurrence
 

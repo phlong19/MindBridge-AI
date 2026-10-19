@@ -2,6 +2,8 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Use Node.js 22.14 or newer (required by the current Vapi/Daily SDK).
+
 First, run the development server:
 
 ```bash

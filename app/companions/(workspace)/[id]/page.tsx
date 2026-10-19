@@ -3,19 +3,21 @@ import { redirect } from "next/navigation";
 import { RedirectWithToast } from "@/components/custom/ClientToast";
 import CompanionWorkspace from "@/components/custom/companion-workspace/CompanionWorkspace";
 import { getCompanion } from "@/lib/services/companion";
-import { getLastUserSession } from "@/lib/services/sessions-history";
+import { getCompanionConversation } from "@/lib/services/sessions-history";
 import { getVoicesList } from "@/lib/services/voices";
 import { error as errorMessage } from "@/constants/message";
 import { navLinks } from "@/constants";
+import { getSignInPath } from "@/lib/auth-redirect";
+import { getCompanionBookmarkStatus } from "@/lib/services/bookmarks";
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
 const Page = async ({ params }: Props) => {
-  const user = await currentUser();
-  if (!user) redirect(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!);
   const { id } = await params;
+  const user = await currentUser();
+  if (!user) redirect(getSignInPath(`/companions/${encodeURIComponent(id)}`));
   const { companion, error } = await getCompanion(id, user.id);
   if (!companion)
     return (
@@ -27,13 +29,17 @@ const Page = async ({ params }: Props) => {
       />
     );
 
-  const [historyResult, voicesResult] = await Promise.allSettled([
-    getLastUserSession(id, user.id),
-    getVoicesList(),
-  ]);
+  const [historyResult, voicesResult, bookmarkResult] =
+    await Promise.allSettled([
+      getCompanionConversation(id),
+      getVoicesList(),
+      getCompanionBookmarkStatus(id),
+    ]);
   const history =
     historyResult.status === "fulfilled" ? historyResult.value : null;
-  const latest = history && "data" in history ? history.data : null;
+  const conversation =
+    history && "data" in history ? history : { data: [], nextCursor: null };
+  const latest = conversation.data.at(-1) ?? null;
   const voices =
     voicesResult.status === "fulfilled" && "data" in voicesResult.value
       ? voicesResult.value.data
@@ -47,24 +53,16 @@ const Page = async ({ params }: Props) => {
       key={`${id}-${historyError ? "history-error" : (latest?.id ?? "new")}`}
       companion={companion}
       userId={user.id}
-      userName={user.firstName ?? user.lastName ?? user.username ?? "You"}
-      initialSession={
-        latest
-          ? {
-              id: latest.id,
-              messages: latest.messages,
-              learning_recap: latest.learning_recap,
-              interaction_mode: latest.interaction_mode,
-              ended_by_user: latest.ended_by_user,
-              created_at: latest.created_at,
-              canResume: Boolean(latest.vapi_chat_id),
-            }
-          : null
-      }
+      userName={user.firstName ?? user.lastName ?? user.username ?? ""}
+      initialSession={latest}
+      initialConversation={conversation}
       voiceName={
         voices?.find((voice) => voice.id === companion.voiceId)?.name ?? null
       }
       historyError={historyError}
+      initialBookmarked={
+        bookmarkResult.status === "fulfilled" ? bookmarkResult.value : null
+      }
     />
   );
 };

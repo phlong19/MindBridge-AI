@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { getSignInPath } from "@/lib/auth-redirect";
 
 const isProtectedAdminRoute = createRouteMatcher(["/admin(.*)"]);
 const isProtectedRoute = createRouteMatcher((req) => {
@@ -9,25 +10,21 @@ const isProtectedRoute = createRouteMatcher((req) => {
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
-  const response = NextResponse.redirect(
-    new URL(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!, req.url),
-  );
+  const deniedAdmin =
+    isProtectedAdminRoute(req) &&
+    (!userId || userId !== process.env.ADMIN_USER_ID);
 
-  // admin route
-  if (
-    (!userId || userId !== process.env.ADMIN_USER_ID) &&
-    isProtectedAdminRoute(req)
-  ) {
-    response.headers.append(
-      "Set-Cookie",
-      `authorization=1; Path=/; Max-Age=10; SameSite=Lax`,
-    );
-
-    return response;
-  }
-
-  // not authenticated
-  if (isProtectedRoute(req) && !userId) {
+  if (deniedAdmin || (!userId && isProtectedRoute(req))) {
+    const destination = userId
+      ? "/auth/login"
+      : getSignInPath(`${req.nextUrl.pathname}${req.nextUrl.search}`);
+    const response = NextResponse.redirect(new URL(destination, req.url));
+    if (deniedAdmin)
+      response.cookies.set("authorization", "1", {
+        path: "/",
+        maxAge: 10,
+        sameSite: "lax",
+      });
     return response;
   }
 

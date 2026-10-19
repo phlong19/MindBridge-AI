@@ -1,10 +1,12 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/provider";
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 export default function CopyResponse({ content }: { content: string }) {
+  const { t } = useI18n();
   const [status, setStatus] = useState<"idle" | "copied" | "error">("idle");
   const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const alive = useRef(true);
@@ -35,8 +37,10 @@ export default function CopyResponse({ content }: { content: string }) {
         variant="ghost"
         size="icon"
         className="text-muted-foreground hover:text-foreground size-7 rounded-lg"
-        aria-label={status === "copied" ? "Response copied" : "Copy response"}
-        title={status === "copied" ? "Copied" : "Copy response"}
+        aria-label={
+          status === "copied" ? t("Response copied") : t("Copy response")
+        }
+        title={status === "copied" ? t("Copied") : t("Copy response")}
         onClick={() => {
           void copy();
         }}
@@ -56,9 +60,9 @@ export default function CopyResponse({ content }: { content: string }) {
         }
       >
         {status === "copied"
-          ? "Copied"
+          ? t("Copied")
           : status === "error"
-            ? "Could not copy. Please try again."
+            ? t("Could not copy. Please try again.")
             : ""}
       </span>
     </div>

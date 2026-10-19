@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/provider";
 import { getToastStyle, ToastTypes } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -21,14 +22,15 @@ export const ClientToast = ({
   message,
   type = "error",
 }: MessageProps) => {
+  const { t } = useI18n();
   useEffect(() => {
     if (title) {
-      toast.error(title, {
+      toast.error(t(title), {
         ...getToastStyle(type),
-        description: message,
+        description: message ? t(message) : undefined,
       });
     }
-  }, [title, message, type]);
+  }, [title, message, type, t]);
 
   return null;
 };

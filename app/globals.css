@@ -1,6 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "../components/custom/companion-workspace/workspace.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -152,16 +153,13 @@ body {
     @apply flex w-full flex-col justify-between gap-2.5 rounded-4xl border border-black px-4 py-4 min-lg:max-w-[410px] lg:gap-3.5;
   }
   .subject-badge {
-    @apply rounded-4xl bg-black px-2 py-1 text-sm text-white capitalize;
+    @apply min-w-max shrink-0 rounded-4xl bg-black px-3 py-1 text-sm whitespace-nowrap text-white capitalize;
   }
   .companion-bookmark {
     @apply flex aspect-square h-full cursor-pointer items-center rounded-4xl bg-black px-2;
   }
   .input {
     @apply !w-full !bg-white focus-visible:!ring-0;
-  }
-  .rounded-border {
-    @apply rounded-4xl border border-black;
   }
   .cta-section {
     @apply bg-cta flex w-2/3 flex-col items-center gap-5 rounded-4xl px-7 py-10 text-center text-white max-md:w-full lg:w-1/3;
@@ -180,51 +178,6 @@ body {
   }
   .companion-list {
     @apply rounded-4xl border border-black bg-white px-7 pt-7 pb-10 max-lg:w-full;
-  }
-  .companion-limit {
-    @apply flex w-full flex-col items-center justify-center gap-4 pt-20 text-center min-2xl:w-1/2;
-  }
-
-  .companion-section {
-    @apply flex w-2/3 flex-col items-center justify-center gap-4 rounded-lg border-2 border-orange-500 max-sm:w-full;
-  }
-
-  .companion-avatar {
-    @apply mt-4 flex size-[300px] items-center justify-center rounded-lg max-sm:size-[100px];
-  }
-  .companion-lottie {
-    @apply size-[350px] max-sm:size-[180px];
-  }
-
-  .user-section {
-    @apply flex w-1/3 flex-col gap-4 max-sm:w-full max-sm:flex-row;
-  }
-  .user-avatar {
-    @apply flex flex-col items-center gap-4 rounded-lg border-2 border-black py-8 max-sm:hidden;
-  }
-
-  .btn-mic {
-    @apply flex w-full cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-black py-8 max-sm:py-2;
-  }
-
-  .transcript {
-    @apply relative flex w-full flex-grow flex-col items-center gap-4 overflow-hidden pt-10;
-  }
-  .transcript-message {
-    @apply flex h-full w-full flex-col gap-4 overflow-y-auto pr-2 text-2xl max-sm:gap-2;
-  }
-  .transcript-fade {
-    @apply from-background via-background/90 pointer-events-none absolute right-0 bottom-0 left-0 z-10 h-40 bg-gradient-to-t to-transparent max-sm:h-20;
-  }
-}
-
-@layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
   }
 }
 

@@ -8,6 +8,14 @@ export type WorkspaceSession = {
   messages: string | null;
   created_at: string;
   learning_recap: unknown;
+  is_demo?: boolean;
+  duration_seconds?: number | null;
+};
+
+export type ConversationCursor = { createdAt: string; id: number };
+export type ConversationPage = {
+  data: WorkspaceSession[];
+  nextCursor: ConversationCursor | null;
 };
 
 export function parseSessionMessages(
@@ -36,6 +44,7 @@ export function resumableTextSessionId(
   > | null,
 ) {
   return session?.interaction_mode === "text" &&
+    !("is_demo" in session && session.is_demo) &&
     !session.ended_by_user &&
     session.canResume
     ? session.id

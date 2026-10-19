@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Loader2, Plus, Search } from "lucide-react";
@@ -30,6 +31,7 @@ export default function CompanionSidebar({
   isNavigationLocked?: () => boolean;
   onNavigate?: () => void;
 }) {
+  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [items, setItems] = useState(initial.companions);
   const [count, setCount] = useState(initial.count);
@@ -130,8 +132,8 @@ export default function CompanionSidebar({
         )}
         title={
           locked
-            ? "End the current session before switching companions"
-            : (companion.name ?? "Companion")
+            ? t("End the current session before switching companions")
+            : (companion.name ?? t("Companion"))
         }
       >
         <CompanionAvatar
@@ -142,7 +144,7 @@ export default function CompanionSidebar({
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold">{companion.name}</span>
           <span className="text-muted-foreground mt-1 block truncate text-xs">
-            {companion.topic || companion.subject}
+            {companion.topic || t(companion.subject ?? "")}
           </span>
         </span>
         {selected && (
@@ -158,11 +160,13 @@ export default function CompanionSidebar({
   return (
     <nav
       className="flex h-full min-h-0 flex-col"
-      aria-label="Learning companions"
+      aria-label={t("Learning companions")}
     >
       <div className="shrink-0 px-5 pt-5 pb-4">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="font-bold">My Companions</h2>
+          <h2 className="font-bold">
+            <LocalizedText>My Companions</LocalizedText>
+          </h2>
           <Button
             asChild
             variant="outline"
@@ -178,17 +182,19 @@ export default function CompanionSidebar({
               }}
             >
               <Plus className="size-4" />
-              New
+              <LocalizedText>New</LocalizedText>
             </Link>
           </Button>
         </div>
         <label className="border-border/60 bg-muted/60 focus-within:ring-primary/40 mt-5 flex items-center gap-2 rounded-xl border px-3 py-2.5 focus-within:ring-2">
           <Search className="size-4 shrink-0" aria-hidden="true" />
-          <span className="sr-only">Search your companions</span>
+          <span className="sr-only">
+            <LocalizedText>Search your companions</LocalizedText>
+          </span>
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search companions…"
+            placeholder={t("Search companions…")}
             maxLength={200}
             className="placeholder:text-muted-foreground w-full min-w-0 bg-transparent text-sm outline-none"
           />
@@ -198,7 +204,7 @@ export default function CompanionSidebar({
         {error ? (
           <div className="px-5 py-3 text-sm">
             <p className="text-muted-foreground">
-              Could not load your companions.
+              <LocalizedText>Could not load your companions.</LocalizedText>
             </p>
             <Button
               variant="link"
@@ -208,7 +214,7 @@ export default function CompanionSidebar({
                 void load(search, 1, ++requestId.current);
               }}
             >
-              Retry
+              <LocalizedText>Retry</LocalizedText>
             </Button>
           </div>
         ) : (
@@ -217,8 +223,8 @@ export default function CompanionSidebar({
             {!items.length && !loading && (
               <p className="text-muted-foreground px-5 py-4 text-sm">
                 {term
-                  ? "No matching companions."
-                  : "Create your first learning companion."}
+                  ? t("No matching companions.")
+                  : t("Create your first learning companion.")}
               </p>
             )}
           </>
@@ -229,7 +235,7 @@ export default function CompanionSidebar({
             className="text-muted-foreground flex items-center justify-center gap-2 p-4 text-xs"
           >
             <Loader2 className="size-4 animate-spin" />
-            Loading companions…
+            <LocalizedText>Loading companions…</LocalizedText>
           </p>
         )}
         {!error && items.length < count && (
@@ -242,29 +248,29 @@ export default function CompanionSidebar({
               void load(search, page + 1, ++requestId.current);
             }}
           >
-            Load more
+            <LocalizedText>Load more</LocalizedText>
           </Button>
         )}
         {saved.length > 0 && (
           <>
             <h3 className="text-muted-foreground px-5 pt-6 pb-2 text-xs font-semibold tracking-wide">
-              Saved companions
+              <LocalizedText>Saved companions</LocalizedText>
             </h3>
             {saved.map(row)}
           </>
         )}
         {initial.savedError && (
           <p className="text-muted-foreground px-5 py-3 text-xs">
-            Saved companions are unavailable.{" "}
+            <LocalizedText>Saved companions are unavailable.</LocalizedText>{" "}
             <Link href="/profile/my-journey" className="text-primary underline">
-              Open My Journey
+              <LocalizedText>Open My Journey</LocalizedText>
             </Link>
           </p>
         )}
         {showCurrent && (
           <>
             <h3 className="text-muted-foreground px-5 pt-6 pb-2 text-xs font-semibold tracking-wide">
-              Current companion
+              <LocalizedText>Current companion</LocalizedText>
             </h3>
             {row(current)}
           </>
@@ -273,14 +279,16 @@ export default function CompanionSidebar({
       <div className="border-border/60 shrink-0 border-t px-5 py-4">
         {locked ? (
           <p className="text-muted-foreground text-xs leading-relaxed">
-            End your session before switching companions.
+            <LocalizedText>
+              End your session before switching companions.
+            </LocalizedText>
           </p>
         ) : (
           <Link
             href="/profile/my-journey"
             className="text-muted-foreground hover:text-primary flex items-center justify-between text-xs"
           >
-            My learning journey
+            <LocalizedText>My learning journey</LocalizedText>{" "}
             <ArrowUpRight className="size-3.5" />
           </Link>
         )}

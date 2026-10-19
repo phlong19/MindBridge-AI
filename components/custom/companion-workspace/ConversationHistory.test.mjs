@@ -47,6 +47,11 @@ function modal(result) {
       module: testModule,
       exports: testModule.exports,
       require(name) {
+        if (name === "@/lib/i18n/provider")
+          return {
+            useI18n: () => ({ t: (message) => message, locale: "en" }),
+            LocalizedText: "LocalizedText",
+          };
         if (name === "react") return react;
         if (name === "react/jsx-runtime")
           return { jsx: element, jsxs: element };

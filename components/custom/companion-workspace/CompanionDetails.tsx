@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import { useId, useState, type ReactNode } from "react";
 import {
   CalendarDays,
@@ -12,6 +13,7 @@ import {
 import type { CompanionRow } from "@/types";
 import { cn } from "@/lib/utils";
 import LearningRecapPanel from "./LearningRecapPanel";
+import CompanionAvatar from "./CompanionAvatar";
 import type { CompanionSessionState } from "./useCompanionSession";
 
 function Detail({
@@ -27,7 +29,9 @@ function Detail({
     <div className="flex gap-4">
       {icon}
       <div className="min-w-0">
-        <dt className="mb-1 text-xs font-semibold">{label}</dt>
+        <dt className="mb-1 text-xs font-semibold">
+          <LocalizedText>{label}</LocalizedText>
+        </dt>
         <dd className="text-muted-foreground text-sm leading-relaxed">
           {children}
         </dd>
@@ -45,13 +49,14 @@ export default function CompanionDetails({
   voiceName: string | null;
   session: CompanionSessionState;
 }) {
+  const { t, locale } = useI18n();
   const [tab, setTab] = useState<"about" | "settings">("about");
   const id = useId();
   const iconClass = "mt-0.5 size-5 shrink-0";
   const created = new Date(companion.created_at);
   const createdLabel = Number.isNaN(created.getTime())
-    ? "Unavailable"
-    : created.toLocaleDateString("en-US", {
+    ? t("Unavailable")
+    : created.toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -60,11 +65,11 @@ export default function CompanionDetails({
   return (
     <aside
       className="flex h-full min-h-0 flex-col"
-      aria-label="Companion details"
+      aria-label={t("Companion details")}
     >
       <div
         role="tablist"
-        aria-label="Companion information"
+        aria-label={t("Companion information")}
         className="border-border/60 grid shrink-0 grid-cols-2 border-b px-3"
       >
         {(["about", "settings"] as const).map((value) => (
@@ -100,7 +105,7 @@ export default function CompanionDetails({
                 : "text-muted-foreground hover:text-foreground border-transparent",
             )}
           >
-            {value}
+            {t(value === "about" ? "About" : "Settings")}
           </button>
         ))}
       </div>
@@ -113,27 +118,42 @@ export default function CompanionDetails({
       >
         {tab === "about" ? (
           <>
+            <div className="flex flex-col items-center gap-3 py-3">
+              <CompanionAvatar
+                companion={companion}
+                className="size-40 rounded-3xl"
+                alt={`${t("Avatar for")} ${companion.name}`}
+                sizes="160px"
+              />
+              <p className="w-full text-center text-lg font-semibold break-words">
+                {companion.name}
+              </p>
+            </div>
             <section className="bg-muted/60 rounded-2xl p-5">
-              <h3 className="mb-2 font-bold">Overview</h3>
+              <h3 className="mb-2 font-bold">
+                <LocalizedText>Overview</LocalizedText>
+              </h3>
               <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
                 {companion.topic ||
-                  `Learn and practice ${companion.subject ?? "your chosen topic"}.`}
+                  `${t("Learn and practice")} ${t(companion.subject ?? "your chosen topic")}.`}
               </p>
               <dl className="space-y-6">
                 <Detail
                   icon={<GraduationCap className={iconClass} />}
                   label="Category"
                 >
-                  <span className="capitalize">{companion.subject}</span>
+                  <span className="capitalize">
+                    {t(companion.subject ?? "")}
+                  </span>
                 </Detail>
                 <Detail
                   icon={<NotebookText className={iconClass} />}
                   label="Topic"
                 >
-                  {companion.topic || "Not specified"}
+                  {companion.topic || t("Not specified")}
                 </Detail>
                 <Detail icon={<Mic className={iconClass} />} label="Voice">
-                  {voiceName ?? "Voice unavailable"}
+                  {voiceName ?? t("Voice unavailable")}
                 </Detail>
                 <Detail
                   icon={<CalendarDays className={iconClass} />}
@@ -147,31 +167,36 @@ export default function CompanionDetails({
           </>
         ) : (
           <section className="bg-muted/60 rounded-2xl p-5">
-            <h3 className="mb-2 font-bold">Configuration</h3>
+            <h3 className="mb-2 font-bold">
+              <LocalizedText>Configuration</LocalizedText>
+            </h3>
             <p className="text-muted-foreground mb-6 text-xs leading-relaxed">
-              Your companion’s current learning preferences.
+              <LocalizedText>
+                Your companion’s current learning preferences.
+              </LocalizedText>
             </p>
             <dl className="space-y-6">
               <Detail icon={<Mic className={iconClass} />} label="Voice">
-                {voiceName ?? "Voice unavailable"}
+                {voiceName ?? t("Voice unavailable")}
               </Detail>
               <Detail
                 icon={<SlidersHorizontal className={iconClass} />}
                 label="Tone"
               >
-                {companion.style ? "Formal" : "Casual"}
+                {companion.style ? t("Formal") : t("Casual")}
               </Detail>
               <Detail
                 icon={<GraduationCap className={iconClass} />}
                 label="Voice gender"
               >
-                {companion.gender ? "Male" : "Female"}
+                {companion.gender ? t("Male") : t("Female")}
               </Detail>
               <Detail
                 icon={<Clock3 className={iconClass} />}
                 label="Voice session limit"
               >
-                {companion.duration ?? 10} minutes
+                {companion.duration ?? 10}{" "}
+                <LocalizedText>minutes</LocalizedText>
               </Detail>
             </dl>
           </section>

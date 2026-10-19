@@ -1,3 +1,6 @@
+"use client";
+
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import React from "react";
 import { Button } from "../ui/Button";
 import Image from "next/image";
@@ -6,20 +9,25 @@ import { navLinks } from "@/constants";
 import { cn } from "@/lib/utils";
 
 const CTA = ({ className }: { className?: string }) => {
+  const { t } = useI18n();
   return (
     <section className={cn("cta-section", className)}>
-      <div className="cta-badge">Learning as the way you want</div>
+      <div className="cta-badge">
+        <LocalizedText>Learning as the way you want</LocalizedText>
+      </div>
       <h2 className="text-2xl font-bold">
-        Build and Personalize Learning Companion
+        <LocalizedText>Build and Personalize Learning Companion</LocalizedText>
       </h2>
       <p>
-        Pick a name, subject, voice & personality - and start learning through
-        voice conversations that feel truly nature and joy.
+        <LocalizedText>
+          Pick a name, subject, voice & personality - and start learning through
+          voice conversations that feel truly nature and joy.
+        </LocalizedText>
       </p>
       <Image
         loading="lazy"
         src="/images/cta.svg"
-        alt="cta"
+        alt={t("cta")}
         width={0}
         height={0}
         style={{ width: 360, height: 230 }}
@@ -28,12 +36,14 @@ const CTA = ({ className }: { className?: string }) => {
         <Button className="flex items-baseline">
           <Image
             src="/icons/plus.svg"
-            alt="add"
+            alt={t("add")}
             width={0}
             height={0}
             style={{ width: 12, height: 12 }}
           />
-          <p>Build a new Companion</p>
+          <p>
+            <LocalizedText>Build a new Companion</LocalizedText>
+          </p>
         </Button>
       </Link>
     </section>

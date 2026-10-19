@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -12,14 +13,14 @@ import {
 } from "lucide-react";
 import type { CompanionRow } from "@/types";
 import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/utils";
 import CompanionAvatar from "./CompanionAvatar";
 import LearningRecapPanel from "./LearningRecapPanel";
 import type { CompanionSessionState } from "./useCompanionSession";
-import CopyResponse from "./CopyResponse";
+import ConversationTimeline from "./ConversationTimeline";
 import SessionCountdown from "./SessionCountdown";
 import ConversationHistory from "./ConversationHistory";
 import { resumableTextSessionId } from "./session-messages";
+import CompanionBookmark from "./CompanionBookmark";
 
 export default function CompanionConversation({
   companion,
@@ -27,22 +28,30 @@ export default function CompanionConversation({
   session,
   panelControls,
   historyError,
+  initialBookmarked,
 }: {
   companion: CompanionRow;
   userName: string;
   session: CompanionSessionState;
   panelControls: ReactNode;
   historyError: boolean;
+  initialBookmarked: boolean | null;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const log = useRef<HTMLDivElement>(null);
   const pinned = useRef(true);
   const input = useRef<HTMLTextAreaElement>(null);
   const focusAfterStart = useRef(false);
+  const olderScrollAnchor = useRef<{ height: number; top: number } | null>(
+    null,
+  );
+  const initialHistoryView = useRef(true);
   const [hasNew, setHasNew] = useState(false);
   const voiceBusy =
     session.callStatus !== "idle" && session.callStatus !== "active";
   const sendDisabled =
+    historyError ||
     session.busy ||
     voiceBusy ||
     session.unsavedVoice ||
@@ -57,11 +66,45 @@ export default function CompanionConversation({
 
   useEffect(() => {
     if (!log.current) return;
+    if (olderScrollAnchor.current) {
+      if (!session.historyLoading) {
+        const anchor = olderScrollAnchor.current;
+        log.current.scrollTop =
+          anchor.top + log.current.scrollHeight - anchor.height;
+        olderScrollAnchor.current = null;
+      }
+      return;
+    }
     if (pinned.current) {
       log.current.scrollTop = log.current.scrollHeight;
       setHasNew(false);
     } else setHasNew(true);
-  }, [session.messages, session.busy, session.error, session.recapSessionId]);
+  }, [
+    session.messages,
+    session.savedSessions,
+    session.historyLoading,
+    session.busy,
+    session.responsePending,
+    session.error,
+    session.recapSessionId,
+  ]);
+
+  useEffect(() => {
+    if (initialHistoryView.current) {
+      initialHistoryView.current = false;
+      return;
+    }
+    if (!session.viewedSession) return;
+    const element = log.current?.querySelector<HTMLElement>(
+      `#conversation-session-${session.viewedSession.id}`,
+    );
+    if (element && log.current) {
+      pinned.current = false;
+      log.current.scrollTop +=
+        element.getBoundingClientRect().top -
+        log.current.getBoundingClientRect().top;
+    }
+  }, [session.viewedSession]);
 
   function scrollToLatest() {
     pinned.current = true;
@@ -72,7 +115,7 @@ export default function CompanionConversation({
   return (
     <section
       className="relative flex h-full min-h-0 min-w-0 flex-col"
-      aria-label={`Conversation with ${companion.name}`}
+      aria-label={`${t("Conversation with")} ${companion.name}`}
     >
       <header className="border-border/60 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-4 py-4 sm:px-6">
         <div className="flex min-w-0 flex-[1_1_160px] items-center gap-3">
@@ -81,13 +124,13 @@ export default function CompanionConversation({
             className="size-12 rounded-xl"
           />
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <h1 className="truncate !text-lg sm:!text-xl">
                 {companion.name}
               </h1>
               {companion.isPublish && (
-                <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] text-green-700">
-                  Community
+                <span className="shrink-0 rounded-full bg-green-50 px-2 py-0.5 text-[10px] whitespace-nowrap text-green-700">
+                  <LocalizedText>Community</LocalizedText>
                 </span>
               )}
             </div>
@@ -97,6 +140,11 @@ export default function CompanionConversation({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <CompanionBookmark
+            key={companion.id}
+            companion={companion}
+            initialBookmarked={initialBookmarked}
+          />
           {session.callStatus !== "idle" ? (
             <SessionCountdown session={session} />
           ) : (
@@ -105,27 +153,25 @@ export default function CompanionConversation({
               size="sm"
               className="border-primary/30 text-primary hover:text-primary h-10 rounded-xl bg-[#fff8f3] px-3 text-xs hover:bg-[#ffede4]"
               disabled={
-                session.busy || session.unsavedVoice || session.generatingRecap
+                historyError ||
+                session.busy ||
+                session.unsavedVoice ||
+                session.generatingRecap
               }
-              title={
-                session.textSessionId !== null
-                  ? "End this text session and start a new conversation"
-                  : "Start a session with your microphone muted"
-              }
+              title={t("Continue the conversation with a message")}
               onClick={() => {
-                focusAfterStart.current = true;
-                if (session.voiceReady && companion.slug)
-                  void session.startConversation();
-                else input.current?.focus();
+                input.current?.focus();
               }}
             >
               <MessageSquareText className="size-4" />
               <span className="hidden sm:inline">
-                {session.textSessionId !== null
-                  ? "New conversation"
-                  : "Chat to start conversation"}
+                {session.conversationSections.length
+                  ? t("Continue chat")
+                  : t("Start chat")}
               </span>
-              <span className="sm:hidden">Start chat</span>
+              <span className="sm:hidden">
+                <LocalizedText>Start chat</LocalizedText>
+              </span>
             </Button>
           )}
           <ConversationHistory companionId={companion.id} session={session} />
@@ -150,8 +196,10 @@ export default function CompanionConversation({
             className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm"
           >
             <p>
-              Your previous session could not be loaded. You can still start a
-              new conversation.
+              <LocalizedText>
+                Your previous messages could not be loaded. Retry before
+                continuing so your companion can follow the conversation.
+              </LocalizedText>
             </p>
             <Button
               variant="link"
@@ -159,39 +207,75 @@ export default function CompanionConversation({
               onClick={() => router.refresh()}
               disabled={session.locked}
             >
-              Retry loading history
+              <LocalizedText>Retry loading history</LocalizedText>
             </Button>
           </div>
         )}
         <p className="text-muted-foreground mb-6 text-center text-[11px]">
-          {session.completed
-            ? `Previous ${session.mode} session`
-            : callActive
-              ? session.muted
-                ? "Chat session"
-                : "Voice session"
-              : "Text session"}
-          {session.speaking && callActive ? " · Companion speaking" : ""}
+          {callActive
+            ? session.muted
+              ? t("Chat session")
+              : t("Voice session")
+            : t("Your conversation")}
+          {session.speaking && callActive ? t(" · Companion speaking") : ""}
         </p>
+        {session.hasOlderHistory && (
+          <div className="mb-5 text-center">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={session.historyLoading}
+              onClick={() => {
+                if (log.current)
+                  olderScrollAnchor.current = {
+                    height: log.current.scrollHeight,
+                    top: log.current.scrollTop,
+                  };
+                void session.loadOlderHistory();
+              }}
+            >
+              {session.historyLoading ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  <LocalizedText>Loading older messages…</LocalizedText>
+                </>
+              ) : (
+                t("Load older messages")
+              )}
+            </Button>
+          </div>
+        )}
+        {session.historyLoadError && (
+          <p role="alert" className="mb-4 text-center text-xs text-red-700">
+            {t(session.historyLoadError)}
+          </p>
+        )}
         <div
           role="log"
           aria-live="polite"
           aria-relevant="additions text"
-          aria-label="Conversation messages"
+          aria-label={t("Conversation messages")}
           className="flex flex-col gap-5"
         >
-          {!session.messages.length && (
+          {!session.conversationSections.some(
+            (section) => section.messages.length,
+          ) && (
             <div className="flex items-start gap-3">
               <CompanionAvatar
                 companion={companion}
                 className="mt-1 size-8 rounded-lg"
               />
               <div className="bg-muted/70 max-w-[90%] rounded-2xl px-4 py-3 text-sm leading-relaxed">
-                <p>Hi! I’m {companion.name}, your learning companion.</p>
+                <p>
+                  <LocalizedText>Hi! I’m</LocalizedText> {companion.name}
+                  <LocalizedText>, your learning companion.</LocalizedText>
+                </p>
                 <p className="mt-1">
-                  What would you like to practice today? Ask a question about{" "}
-                  {companion.topic || companion.subject}, or start a voice
-                  session.
+                  <LocalizedText>
+                    What would you like to practice today? Ask a question about
+                  </LocalizedText>{" "}
+                  {companion.topic || t(companion.subject ?? "")}
+                  <LocalizedText>, or start a voice session.</LocalizedText>
                 </p>
               </div>
             </div>
@@ -200,7 +284,11 @@ export default function CompanionConversation({
             session.viewedSession &&
             resumableTextSessionId(session.viewedSession) !== null && (
               <div className="border-primary/15 flex items-center justify-between gap-3 rounded-xl border bg-[#fff8f3] p-3 text-xs">
-                <p>This text session is still open.</p>
+                <p>
+                  <LocalizedText>
+                    This text session is still open.
+                  </LocalizedText>
+                </p>
                 <Button
                   size="sm"
                   variant="outline"
@@ -210,60 +298,40 @@ export default function CompanionConversation({
                       session.openSavedSession(session.viewedSession, true);
                   }}
                 >
-                  Resume text session
+                  <LocalizedText>Resume text session</LocalizedText>
                 </Button>
               </div>
             )}
-          {session.messages.map((message, index) => (
-            <div
-              key={`${index}-${message.role}`}
-              className={cn(
-                "flex items-start gap-3",
-                message.role === "user" && "justify-end",
-              )}
-            >
-              {message.role === "assistant" && (
-                <CompanionAvatar
-                  companion={companion}
-                  className="mt-1 size-8 rounded-lg"
-                />
-              )}
-              <div className="flex max-w-[88%] flex-col sm:max-w-[85%]">
-                <div
-                  className={cn(
-                    "overflow-hidden rounded-2xl px-4 py-3 text-sm leading-relaxed",
-                    message.role === "user" ? "bg-[#ffede4]" : "bg-muted/70",
-                  )}
-                >
-                  <span className="sr-only">
-                    {message.role === "user" ? userName : companion.name}:{" "}
-                  </span>
-                  <p className="[overflow-wrap:anywhere] break-words whitespace-pre-wrap">
-                    {message.content}
-                  </p>
-                </div>
-                {message.role === "assistant" && (
-                  <CopyResponse content={message.content} />
-                )}
-              </div>
-            </div>
-          ))}
-          {session.busy && (
+          <ConversationTimeline
+            sections={session.conversationSections}
+            companion={companion}
+            userName={userName}
+            selectedSessionId={session.selectedSessionId}
+          />
+          {(session.busy || session.responsePending) && (
             <p
               role="status"
               className="text-muted-foreground flex items-center gap-2 pl-11 text-xs"
             >
               <Loader2 className="size-3.5 animate-spin" />
-              Working on your text session…
+              {companion.name} <LocalizedText>is thinking…</LocalizedText>
             </p>
           )}
         </div>
+        {session.callEndedMessage && (
+          <p
+            role="status"
+            className="text-muted-foreground mt-4 text-center text-xs"
+          >
+            {t(session.callEndedMessage)}
+          </p>
+        )}
         {session.error && (
           <div
             role="alert"
             className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800"
           >
-            <p>{session.error}</p>
+            <p>{t(session.error)}</p>
             {session.unsavedVoice && (
               <Button
                 variant="outline"
@@ -274,7 +342,7 @@ export default function CompanionConversation({
                   void session.retrySave();
                 }}
               >
-                Retry saving call
+                <LocalizedText>Retry saving call</LocalizedText>
               </Button>
             )}
           </div>
@@ -293,35 +361,39 @@ export default function CompanionConversation({
           onClick={scrollToLatest}
         >
           <ArrowDown className="size-3.5" />
-          Latest messages
+          <LocalizedText>Latest messages</LocalizedText>
         </Button>
       )}
       <div className="shrink-0 px-3 pb-3 sm:px-4">
-        <div className="text-muted-foreground mb-2 flex min-h-5 items-center justify-between gap-2 px-2 text-[11px]">
-          <span>
-            {session.callStatus === "saving"
-              ? "Saving your call…"
-              : callActive
-                ? `Session active · ${session.muted ? "Microphone muted" : "Microphone on"}`
-                : session.textSessionId !== null
-                  ? "Text session · voice input starts a new session"
-                  : session.completed
-                    ? "Start a new conversation or browse your history"
-                    : "Ask a question or practice together"}
-          </span>
-          {session.textSessionId !== null && (
-            <button
-              type="button"
-              className="text-primary focus-visible:ring-primary shrink-0 rounded px-1 hover:underline focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
-              disabled={session.busy}
-              onClick={() => {
-                void session.endText();
-              }}
-            >
-              End text session
-            </button>
-          )}
-        </div>
+        {(session.callStatus !== "idle" ||
+          session.textSessionId !== null ||
+          session.completed) && (
+          <div className="text-muted-foreground mb-2 flex min-h-5 items-center justify-between gap-2 px-2 text-xs">
+            <span>
+              {session.callStatus === "saving"
+                ? t("Saving your call…")
+                : callActive
+                  ? `${t("Session active")} · ${t(session.muted ? "Microphone muted" : "Microphone on")}`
+                  : session.textSessionId !== null
+                    ? t("Text chat")
+                    : session.completed
+                      ? t("Continue chatting below, or enable voice input")
+                      : null}
+            </span>
+            {session.textSessionId !== null && (
+              <button
+                type="button"
+                className="text-primary focus-visible:ring-primary shrink-0 rounded px-1 hover:underline focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
+                disabled={session.busy}
+                onClick={() => {
+                  void session.endText();
+                }}
+              >
+                <LocalizedText>End text session</LocalizedText>
+              </button>
+            )}
+          </div>
+        )}
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -331,7 +403,7 @@ export default function CompanionConversation({
           className="border-border/70 focus-within:border-primary/40 focus-within:ring-primary/10 rounded-2xl border bg-white p-3 focus-within:ring-2"
         >
           <label htmlFor="workspace-message" className="sr-only">
-            Message {companion.name}
+            <LocalizedText>Message</LocalizedText> {companion.name}
           </label>
           <textarea
             id="workspace-message"
@@ -348,19 +420,21 @@ export default function CompanionConversation({
                 event.currentTarget.form?.requestSubmit();
               }
             }}
-            placeholder="Type your message…"
+            placeholder={t("Type your message…")}
             rows={2}
             maxLength={2000}
             disabled={sendDisabled}
             className="placeholder:text-muted-foreground max-h-28 min-h-12 w-full resize-none bg-transparent px-1 text-sm outline-none disabled:opacity-60"
           />
           <div className="flex items-center justify-between gap-3">
-            <p className="text-muted-foreground px-1 text-[10px]">
+            <p className="text-muted-foreground px-1 text-xs! leading-relaxed">
               {callActive
-                ? "Typed messages join this voice session"
-                : "Enter to send · Shift + Enter for a new line"}
+                ? t("Typed messages join this voice session")
+                : t(
+                    "Sending starts a voice session with the microphone muted · Enter to send · Shift + Enter for a new line",
+                  )}
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               <Button
                 type="button"
                 variant="ghost"
@@ -368,12 +442,13 @@ export default function CompanionConversation({
                 className="size-9 rounded-full"
                 aria-label={
                   callActive && !session.muted
-                    ? "Mute voice input"
-                    : "Enable voice input"
+                    ? t("Mute voice input")
+                    : t("Enable voice input")
                 }
                 aria-pressed={callActive && !session.muted}
                 disabled={
                   voiceBusy ||
+                  historyError ||
                   session.busy ||
                   session.unsavedVoice ||
                   session.generatingRecap ||
@@ -382,14 +457,17 @@ export default function CompanionConversation({
                 }
                 title={
                   session.textSessionId !== null
-                    ? "Start voice input in a new session"
+                    ? t("Start voice input in a new session")
                     : callActive && !session.muted
-                      ? "Mute microphone"
-                      : "Enable voice input"
+                      ? t("Mute microphone")
+                      : t("Enable voice input")
                 }
                 onClick={() => {
                   if (callActive) session.toggleMute();
-                  else void session.startVoice({ muted: false });
+                  else {
+                    focusAfterStart.current = true;
+                    void session.startVoice({ muted: false });
+                  }
                 }}
               >
                 {callActive && session.muted ? (
@@ -403,7 +481,7 @@ export default function CompanionConversation({
                 size="icon"
                 className="bg-primary size-10 rounded-full shadow-sm"
                 disabled={sendDisabled || !session.draft.trim()}
-                aria-label="Send message"
+                aria-label={t("Send message")}
               >
                 {session.busy ? (
                   <Loader2 className="size-4 animate-spin" />

@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import type { CompanionRow } from "@/types";
 import CompanionWorkspaceShell from "@/components/custom/companion-workspace/CompanionWorkspaceShell";
 import { getWorkspaceCompanions } from "@/lib/services/companion";
@@ -12,7 +11,8 @@ export default async function WorkspaceLayout({
   children: ReactNode;
 }) {
   const user = await currentUser();
-  if (!user) redirect(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!);
+  // The detail page redirects with its companion ID if middleware did not.
+  if (!user) return children;
   const [ownedResult, savedResult] = await Promise.allSettled([
     getWorkspaceCompanions(),
     getAllCompanionsFromBookmark(user.id),

@@ -3,6 +3,8 @@ enum MessageTypeEnum {
   FUNCTION_CALL = "function-call",
   FUNCTION_CALL_RESULT = "function-call-result",
   ADD_MESSAGE = "add-message",
+  SPEECH_UPDATE = "speech-update",
+  STATUS_UPDATE = "status-update",
 }
 
 enum MessageRoleEnum {
@@ -44,7 +46,21 @@ interface FunctionCallResultMessage extends BaseMessage {
   };
 }
 
+interface SpeechUpdateMessage extends BaseMessage {
+  type: MessageTypeEnum.SPEECH_UPDATE;
+  role: MessageRoleEnum;
+  status: "started" | "stopped";
+}
+
+interface StatusUpdateMessage extends BaseMessage {
+  type: MessageTypeEnum.STATUS_UPDATE;
+  status: string;
+  endedReason?: string;
+}
+
 type Message =
   | TranscriptMessage
   | FunctionCallMessage
-  | FunctionCallResultMessage;
+  | FunctionCallResultMessage
+  | SpeechUpdateMessage
+  | StatusUpdateMessage;

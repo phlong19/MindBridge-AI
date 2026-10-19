@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -28,6 +29,7 @@ const formSchema = z.object({
 });
 
 export default function Page() {
+  const { t, locale } = useI18n();
   const [keyInformation, setKeyInformation] = useState<JwtPayload>({});
   const [voiceData, setVoiceData] = useState<Voice[]>([]);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -41,17 +43,17 @@ export default function Page() {
 
       if (Array.isArray(voices) && voices.length > 0) {
         setVoiceData(voices);
-        toast.success(successMessage.syncComplete, getToastStyle("success"));
+        toast.success(t(successMessage.syncComplete), getToastStyle("success"));
       } else if (!Array.isArray(voices)) {
-        toast.error(voices.error, {
+        toast.error(t(voices.error), {
           ...getToastStyle("error"),
-          description: voices.errorDescription,
+          description: t(voices.errorDescription),
         });
       } else {
-        toast.error(errorMessage.fetchFail, getToastStyle("error"));
+        toast.error(t(errorMessage.fetchFail), getToastStyle("error"));
       }
     } catch {
-      toast.error(errorMessage.serverError, getToastStyle("error"));
+      toast.error(t(errorMessage.serverError), getToastStyle("error"));
     } finally {
       form.reset({ key: "" });
       setKeyInformation({});
@@ -104,7 +106,9 @@ export default function Page() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="pb-2">
-                    Vapi dashboard authorization value
+                    <LocalizedText>
+                      Vapi dashboard authorization value
+                    </LocalizedText>
                   </FormLabel>
                   <FormControl>
                     <Textarea
@@ -116,7 +120,9 @@ export default function Page() {
                           field.onBlur();
                         } else setKeyInformation({});
                       }}
-                      placeholder="Paste a current JWT or the full Bearer value"
+                      placeholder={t(
+                        "Paste a current JWT or the full Bearer value",
+                      )}
                       className="min-h-40"
                     />
                   </FormControl>
@@ -128,19 +134,23 @@ export default function Page() {
             <div className="flex items-center justify-between pt-3">
               <div className="text-muted-foreground text-sm">
                 <ul>
-                  {keyInformation.iss && <li>Issue: {keyInformation.iss}</li>}
+                  {keyInformation.iss && (
+                    <li>
+                      <LocalizedText>Issue:</LocalizedText> {keyInformation.iss}
+                    </li>
+                  )}
                   {keyInformation.exp && (
                     <li>
-                      Expire at:{" "}
+                      <LocalizedText>Expire at:</LocalizedText>{" "}
                       {new Date(keyInformation.exp * 1000).toLocaleString(
-                        "en-GB",
+                        locale === "vi" ? "vi-VN" : "en-GB",
                       )}
                     </li>
                   )}
                 </ul>
               </div>
               <Button disabled={form.formState.isSubmitting} type="submit">
-                Start
+                <LocalizedText>Start</LocalizedText>
               </Button>
             </div>
           </form>

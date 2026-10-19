@@ -1,4 +1,4 @@
-/* Load workspace sizing with its shared shell, independently of other pages. */
+/* Load with the root stylesheet so navigation always has the workspace grid. */
 main.companion-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -14,13 +14,13 @@ main.companion-workspace {
 
 @media (min-width: 768px) {
   main.companion-workspace {
-    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-columns: 300px minmax(0, 1fr);
     padding: 16px;
   }
 }
 
 @media (min-width: 1280px) {
   main.companion-workspace {
-    grid-template-columns: 280px minmax(0, 1fr) 360px;
+    grid-template-columns: 340px minmax(0, 1fr) 360px;
   }
 }

@@ -1,3 +1,4 @@
+import { LocalizedText } from "@/lib/i18n/provider";
 import { getSubjectColor } from "@/lib/utils";
 import { ClientToast } from "./ClientToast";
 import Searchbar from "./Searchbar";
@@ -25,7 +26,9 @@ const CompanionsListWrapper = ({
   return (
     <main>
       <section className="flex justify-between gap-4 max-sm:flex-col">
-        <h1>{title}</h1>
+        <h1>
+          <LocalizedText>{title}</LocalizedText>
+        </h1>
 
         <div className="flex flex-col gap-2 md:flex-row">
           <Searchbar />
@@ -38,7 +41,7 @@ const CompanionsListWrapper = ({
         ) : count === 0 ? (
           <section className="mt-10">
             <TypographyH4 className="text-muted-foreground">
-              {errorMessage.noResults}
+              <LocalizedText>{errorMessage.noResults}</LocalizedText>
             </TypographyH4>
           </section>
         ) : (

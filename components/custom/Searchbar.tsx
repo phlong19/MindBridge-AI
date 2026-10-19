@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/provider";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { Input } from "../ui/Input";
@@ -7,6 +8,7 @@ import { Search } from "lucide-react";
 import { TypographyInlineCode } from "../ui/Typography";
 
 const Searchbar = () => {
+  const { t } = useI18n();
   const pathName = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -60,7 +62,7 @@ const Searchbar = () => {
         value={inputValue}
         type="text"
         maxLength={255}
-        placeholder="Press / to quick search by topic.."
+        placeholder={t("Press / to quick search by topic..")}
         onChange={(e) => setInputValue(e.target.value)}
       />
       <TypographyInlineCode className="border- absolute top-1/2 right-1 -translate-1/2 border bg-[lightgray]/50">

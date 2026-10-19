@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,7 +27,7 @@ import { error as errorMessage, successMessage } from "@/constants/message";
 import { Textarea } from "../ui/Textarea";
 import { createCompanion } from "@/lib/services/companion";
 import { redirect } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import Switch from "../ui/Switch";
 import { Voice, VoiceGroup } from "@/types";
@@ -51,6 +52,7 @@ const formSchema = z.object({
 });
 
 const CompanionForm = () => {
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [voices, setVoices] = useState<VoiceGroup>({ male: [], female: [] });
@@ -81,10 +83,10 @@ const CompanionForm = () => {
     (voice) => voice.style === currentStyle,
   );
 
-  function showFetchFailToast() {
-    toast.error(errorMessage.fetchFail, getToastStyle("error"));
+  const showFetchFailToast = useCallback(() => {
+    toast.error(t(errorMessage.fetchFail), getToastStyle("error"));
     return redirect(navLinks.companions.href);
-  }
+  }, [t]);
 
   const playingVoicePreview = (url: string | null) => {
     if (!url) return;
@@ -111,7 +113,10 @@ const CompanionForm = () => {
       newAudio.onerror = () => {
         setCurrentPlayingUrl(null);
         audioRef.current = null;
-        toast.error(errorMessage.cantPlayVoicePreview, getToastStyle("error"));
+        toast.error(
+          t(errorMessage.cantPlayVoicePreview),
+          getToastStyle("error"),
+        );
       };
     }
   };
@@ -150,7 +155,7 @@ const CompanionForm = () => {
     }
 
     getVoicesAndGroup();
-  }, []);
+  }, [showFetchFailToast]);
 
   function onOpenSelect(name: string) {
     setIsOpen((prev) => (prev === name ? "" : name));
@@ -163,14 +168,14 @@ const CompanionForm = () => {
     });
 
     if (companion) {
-      toast.success(successMessage.createSuccess, {
+      toast.success(t(successMessage.createSuccess), {
         ...getToastStyle("success"),
         description: errorDescription,
       });
       redirect(`/companions/${companion.id}`);
     } else {
       // show toast instead of redirect, which is bad UX
-      toast.error(error, getToastStyle("error"));
+      toast.error(t(error), getToastStyle("error"));
     }
   }
 
@@ -190,9 +195,11 @@ const CompanionForm = () => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name of the companion</FormLabel>
+              <FormLabel>
+                <LocalizedText>Name of the companion</LocalizedText>
+              </FormLabel>
               <FormControl>
-                <Input placeholder="Devin the nerd" {...field} />
+                <Input placeholder={t("Devin the nerd")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -203,7 +210,9 @@ const CompanionForm = () => {
           name="subject"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Select subject</FormLabel>
+              <FormLabel>
+                <LocalizedText>Select subject</LocalizedText>
+              </FormLabel>
               <FormControl>
                 <Select
                   onValueChange={field.onChange}
@@ -211,12 +220,12 @@ const CompanionForm = () => {
                   value={field.value}
                 >
                   <SelectTrigger isOpen={isOpen === field.name}>
-                    <SelectValue placeholder="subject" />
+                    <SelectValue placeholder={t("subject")} />
                   </SelectTrigger>
                   <SelectContent>
                     {subjects.map((subject) => (
                       <SelectItem key={subject} value={subject}>
-                        {subject}
+                        {t(subject)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -232,11 +241,13 @@ const CompanionForm = () => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                What kind of support should the companion offer?
+                <LocalizedText>
+                  What kind of support should the companion offer?
+                </LocalizedText>
               </FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder={`Don't hold back even when have to say stuff like "explain like I’m five’" 😄🖐️`}
+                  placeholder={t("For example, explain fractions step by step")}
                   {...field}
                 />
               </FormControl>
@@ -249,11 +260,13 @@ const CompanionForm = () => {
           name="gender"
           render={({ field }) => (
             <FormItem className="flex items-center gap-8">
-              <FormLabel>Gender</FormLabel>
+              <FormLabel>
+                <LocalizedText>Gender</LocalizedText>
+              </FormLabel>
               <FormControl>
                 <Switch
-                  leftLabel="Female"
-                  rightLabel="Male"
+                  leftLabel={t("Female")}
+                  rightLabel={t("Male")}
                   onCheckedChange={(val) => {
                     field.onChange(val);
                     form.resetField("voiceId");
@@ -269,11 +282,13 @@ const CompanionForm = () => {
           name="style"
           render={({ field }) => (
             <FormItem className="flex items-center gap-8">
-              <FormLabel>Style</FormLabel>
+              <FormLabel>
+                <LocalizedText>Style</LocalizedText>
+              </FormLabel>
               <FormControl>
                 <Switch
-                  leftLabel="Casual"
-                  rightLabel="Formal"
+                  leftLabel={t("Casual")}
+                  rightLabel={t("Formal")}
                   checked={field.value}
                   onCheckedChange={(val) => {
                     field.onChange(val);
@@ -290,8 +305,12 @@ const CompanionForm = () => {
           name="voiceId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Voice</FormLabel>
-              <FormDescription>Based on Gender and Style</FormDescription>
+              <FormLabel>
+                <LocalizedText>Voice</LocalizedText>
+              </FormLabel>
+              <FormDescription>
+                <LocalizedText>Based on Gender and Style</LocalizedText>
+              </FormDescription>
               <FormControl>
                 <Select
                   onValueChange={(val) => {
@@ -304,7 +323,7 @@ const CompanionForm = () => {
                   value={field.value}
                 >
                   <SelectTrigger isOpen={isOpen === field.name}>
-                    <SelectValue placeholder="Select voice model" />
+                    <SelectValue placeholder={t("Select voice model")} />
                   </SelectTrigger>
                   <SelectContent>
                     {filteredVoices.map(({ name, id, previewUrl }) => (
@@ -320,7 +339,7 @@ const CompanionForm = () => {
                           type="button"
                           size="sm"
                           className="hover: absolute top-1/2 left-1 size-6 -translate-y-1/2"
-                          aria-label={`Play sample for ${name} voice`}
+                          aria-label={`${t("Play voice sample")} ${name}`}
                           onClick={() => playingVoicePreview(previewUrl)}
                         >
                           {currentPlayingUrl === previewUrl ? (
@@ -343,9 +362,15 @@ const CompanionForm = () => {
           name="duration"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Duration</FormLabel>
+              <FormLabel>
+                <LocalizedText>Duration</LocalizedText>
+              </FormLabel>
               <FormControl>
-                <Input type="number" placeholder="Duration (mins)" {...field} />
+                <Input
+                  type="number"
+                  placeholder={t("Duration (mins)")}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -363,19 +388,24 @@ const CompanionForm = () => {
                 />
               </FormControl>
               <div className="flex items-center gap-2.5">
-                <FormLabel>Is publish for Community use?</FormLabel>
+                <FormLabel>
+                  <LocalizedText>Is publish for Community use?</LocalizedText>
+                </FormLabel>
                 <Tooltip>
                   <TooltipTrigger>
                     <Image
                       src="/icons/circle-question-mark.svg"
                       height={15}
                       width={15}
-                      alt="hover helper"
+                      alt={t("hover helper")}
                     />
                   </TooltipTrigger>
                   <TooltipContent>
                     <TypographyP className="text-sm">
-                      Everyone can use this companion using your configurations.
+                      <LocalizedText>
+                        Everyone can use this companion using your
+                        configurations.
+                      </LocalizedText>
                     </TypographyP>
                   </TooltipContent>
                 </Tooltip>
@@ -385,10 +415,10 @@ const CompanionForm = () => {
         />
         <div className="flex items-center justify-between">
           <Button variant="outline" onClick={() => form.reset()} type="reset">
-            Reset
+            <LocalizedText>Reset</LocalizedText>
           </Button>
           <Button type="submit" disabled={form.formState.isSubmitting}>
-            Submit
+            <LocalizedText>Submit</LocalizedText>
           </Button>
         </div>
       </form>

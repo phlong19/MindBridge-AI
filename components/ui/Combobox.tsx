@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/provider";
 import { CheckIcon, ChevronsUpDownIcon, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ export function Combobox({
   clearable = false,
   searchable = true,
 }: Props) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
 
   return (
@@ -44,11 +46,11 @@ export function Combobox({
         >
           {currentValue
             ? data.find((item) => item.value === currentValue)?.label
-            : `Select ${name}...`}
+            : `${t("Select")} ${t(name)}…`}
           {clearable && currentValue ? (
             <div
               className="hover:text-primary pointer-events-auto"
-              title="Clear"
+              title={t("Clear")}
               onClick={(e) => {
                 e.stopPropagation();
                 updateFilter?.("");
@@ -63,9 +65,11 @@ export function Combobox({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">
         <Command>
-          {searchable && <CommandInput placeholder={`Search ${name}...`} />}
+          {searchable && (
+            <CommandInput placeholder={`${t("Search")} ${t(name)}…`} />
+          )}
           <CommandList style={{ scrollbarWidth: "thin" }}>
-            <CommandEmpty>No {name} found.</CommandEmpty>
+            <CommandEmpty>{t("No results.")}</CommandEmpty>
             <CommandGroup>
               {data.map(({ label, value }) => (
                 <CommandItem

@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalizedText } from "@/lib/i18n/provider";
 import { Button } from "@/components/ui/Button";
 import {
   Card,
@@ -28,13 +29,17 @@ export default function Page() {
         <Link href={desc} key={title}>
           <Card className="group max-w-lg">
             <CardHeader>
-              <CardTitle>{title}</CardTitle>
+              <CardTitle>
+                <LocalizedText>{title}</LocalizedText>
+              </CardTitle>
               <CardDescription>{desc}</CardDescription>
             </CardHeader>
-            <CardContent>{content}</CardContent>
+            <CardContent>
+              <LocalizedText>{content}</LocalizedText>
+            </CardContent>
             <CardFooter>
               <Button variant="link">
-                View{" "}
+                <LocalizedText>View</LocalizedText>{" "}
                 <ArrowRight className="transition-transform duration-200 group-hover:translate-x-2" />
               </Button>
             </CardFooter>

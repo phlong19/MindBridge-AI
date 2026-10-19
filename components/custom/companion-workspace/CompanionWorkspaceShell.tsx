@@ -1,11 +1,10 @@
 "use client";
 
-import "./workspace.css";
-
 import {
   createContext,
   useCallback,
   useContext,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -18,6 +17,8 @@ import CompanionSidebar, { type NavigationData } from "./CompanionSidebar";
 
 type WorkspaceContext = {
   navigation: NavigationData;
+  updateBookmark: (companion: CompanionRow, bookmarked: boolean) => void;
+  getBookmarkState: (id: string, initial: boolean | null) => boolean | null;
   setCurrentCompanion: Dispatch<SetStateAction<CompanionRow | null>>;
   setLocked: Dispatch<SetStateAction<boolean>>;
   registerNavigationGuard: (guard: () => boolean) => () => void;
@@ -43,6 +44,32 @@ export default function CompanionWorkspaceShell({
     null,
   );
   const [locked, setLocked] = useState(false);
+  const [bookmarkChanges, setBookmarkChanges] = useState<
+    Record<string, CompanionRow | null>
+  >({});
+  const updateBookmark = useCallback(
+    (companion: CompanionRow, bookmarked: boolean) => {
+      setBookmarkChanges((previous) => ({
+        ...previous,
+        [companion.id]: bookmarked ? companion : null,
+      }));
+    },
+    [],
+  );
+  const currentNavigation = useMemo(
+    () => ({
+      ...navigation,
+      saved: [
+        ...navigation.saved.filter(
+          (companion) => !(companion.id in bookmarkChanges),
+        ),
+        ...Object.values(bookmarkChanges).filter(
+          (companion): companion is CompanionRow => companion !== null,
+        ),
+      ],
+    }),
+    [navigation, bookmarkChanges],
+  );
   const guardRef = useRef<(() => boolean) | null>(null);
   const registerNavigationGuard = useCallback((guard: () => boolean) => {
     guardRef.current = guard;
@@ -60,14 +87,17 @@ export default function CompanionWorkspaceShell({
   const current =
     currentCompanion?.id === id
       ? currentCompanion
-      : ([...navigation.companions, ...navigation.saved].find(
+      : ([...currentNavigation.companions, ...currentNavigation.saved].find(
           (companion) => companion.id === id,
         ) ?? null);
 
   return (
     <WorkspaceContext.Provider
       value={{
-        navigation,
+        navigation: currentNavigation,
+        updateBookmark,
+        getBookmarkState: (id, initial) =>
+          id in bookmarkChanges ? Boolean(bookmarkChanges[id]) : initial,
         setCurrentCompanion,
         setLocked,
         registerNavigationGuard,
@@ -77,7 +107,7 @@ export default function CompanionWorkspaceShell({
         <div className="border-border/40 hidden min-h-0 overflow-hidden rounded-2xl border bg-white md:block">
           <CompanionSidebar
             current={current}
-            initial={navigation}
+            initial={currentNavigation}
             locked={locked}
             isNavigationLocked={isNavigationLocked}
           />

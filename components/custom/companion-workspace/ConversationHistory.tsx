@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalizedText, useI18n } from "@/lib/i18n/provider";
 import { useEffect, useRef, useState } from "react";
 import { History, Loader2, MessageSquareText, Mic, Play } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -24,6 +25,7 @@ type Summary = {
   duration_seconds: number | null;
   ended_by_user: boolean;
   canResume: boolean;
+  is_demo?: boolean;
 };
 
 export default function ConversationHistory({
@@ -33,6 +35,7 @@ export default function ConversationHistory({
   companionId: string;
   session: CompanionSessionState;
 }) {
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Summary[]>([]);
   const [page, setPage] = useState(1);
@@ -131,22 +134,28 @@ export default function ConversationHistory({
           variant="ghost"
           size="icon"
           className="size-9 shrink-0 rounded-xl"
-          aria-label="Conversation history"
-          title="Conversation history"
+          aria-label={t("Conversation history")}
+          title={t("Conversation history")}
         >
           <History className="size-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[85dvh] flex-col rounded-2xl bg-white">
         <DialogHeader>
-          <DialogTitle>Conversation history</DialogTitle>
+          <DialogTitle>
+            <LocalizedText>Conversation history</LocalizedText>
+          </DialogTitle>
           <DialogDescription>
-            Your saved sessions with this companion.
+            <LocalizedText>
+              Your saved sessions with this companion.
+            </LocalizedText>
           </DialogDescription>
         </DialogHeader>
         {session.locked && (
           <p className="bg-muted text-muted-foreground rounded-lg p-3 text-xs">
-            End the current session before viewing or resuming another one.
+            <LocalizedText>
+              End the current session before viewing or resuming another one.
+            </LocalizedText>
           </p>
         )}
         <div
@@ -155,8 +164,10 @@ export default function ConversationHistory({
         >
           {!loading && !error && !items.length && (
             <p className="text-muted-foreground py-8 text-center text-sm">
-              No conversations yet. Start chatting with this companion and your
-              saved sessions will appear here.
+              <LocalizedText>
+                No conversations yet. Start chatting with this companion and
+                your saved sessions will appear here.
+              </LocalizedText>
             </p>
           )}
           {items.map((item) => (
@@ -172,24 +183,32 @@ export default function ConversationHistory({
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">
                   {item.interaction_mode === "voice"
-                    ? "Voice session"
-                    : "Text session"}
+                    ? t("Voice session")
+                    : t("Text session")}
+                  {item.is_demo && (
+                    <span className="ml-2 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] text-amber-800">
+                      <LocalizedText>Demo</LocalizedText>
+                    </span>
+                  )}
                   {item.id === session.selectedSessionId && (
                     <span className="text-primary ml-2 text-[10px]">
-                      Current view
+                      <LocalizedText>Current view</LocalizedText>
                     </span>
                   )}
                 </p>
                 <p className="text-muted-foreground mt-1 text-xs">
-                  {new Date(item.created_at).toLocaleString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                    timeZone: "Asia/Ho_Chi_Minh",
-                  })}
+                  {new Date(item.created_at).toLocaleString(
+                    locale === "vi" ? "vi-VN" : "en-US",
+                    {
+                      month: "short",
+                      day: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                      timeZone: "Asia/Ho_Chi_Minh",
+                    },
+                  )}
                   {item.duration_seconds !== null
-                    ? ` · ${Math.floor(item.duration_seconds / 60)}m ${item.duration_seconds % 60}s`
+                    ? ` · ${Math.floor(item.duration_seconds / 60)} ${t("min")} ${item.duration_seconds % 60} ${t("sec")}`
                     : ""}
                 </p>
               </div>
@@ -205,7 +224,7 @@ export default function ConversationHistory({
                   {selection === item.id ? (
                     <Loader2 className="size-3.5 animate-spin" />
                   ) : (
-                    "View"
+                    t("View")
                   )}
                 </Button>
                 {item.canResume && (
@@ -218,7 +237,9 @@ export default function ConversationHistory({
                     }}
                   >
                     <Play className="size-3" />
-                    <span>Resume</span>
+                    <span>
+                      <LocalizedText>Resume</LocalizedText>
+                    </span>
                   </Button>
                 )}
               </div>
@@ -230,13 +251,13 @@ export default function ConversationHistory({
               className="text-muted-foreground flex items-center justify-center gap-2 p-6 text-sm"
             >
               <Loader2 className="size-4 animate-spin" />
-              Loading sessions…
+              <LocalizedText>Loading sessions…</LocalizedText>
             </p>
           )}
         </div>
         {error && (
           <div role="alert" className="text-sm text-red-700">
-            <p>{error}</p>
+            <p>{t(error)}</p>
             <Button
               variant="link"
               className="h-auto px-0 py-2"
@@ -245,7 +266,7 @@ export default function ConversationHistory({
                 void load(1);
               }}
             >
-              Retry
+              <LocalizedText>Retry</LocalizedText>
             </Button>
           </div>
         )}
@@ -258,7 +279,7 @@ export default function ConversationHistory({
               void load(page + 1);
             }}
           >
-            Load more sessions
+            <LocalizedText>Load more sessions</LocalizedText>
           </Button>
         )}
       </DialogContent>
