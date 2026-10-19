@@ -105,10 +105,6 @@ const Navbar = () => {
         try {
           const res = await fetch("/api/check-admin", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId: user.id }),
           });
 
           const data: { isAdmin: boolean } = await res.json();
@@ -117,7 +113,7 @@ const Navbar = () => {
           console.log(error);
           toast.error(errorMessage.unknownError, getToastStyle("error"));
         }
-      }
+      } else setIsAdmin(false);
     }
 
     checkIsAdmin();
@@ -175,22 +171,26 @@ const Navbar = () => {
           ) : (
             <Popover
               key={label}
-              onOpenChange={() =>
-                setIsOpeningChildren((prev) => (prev !== href ? href : ""))
+              onOpenChange={(nextOpen) =>
+                setIsOpeningChildren(nextOpen ? href : "")
               }
               open={isOpeningChildren === href}
             >
               <PopoverTrigger asChild>
-                <span
-                  key={label}
-                  className="flex cursor-pointer items-center gap-1"
+                <button
+                  type="button"
+                  className="hover:text-primary focus-visible:ring-primary flex cursor-pointer items-center gap-1 rounded-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
                 >
+                  {label}
                   <ChevronDown
                     size={18}
-                    className={`${isOpeningChildren === href ? "rotate-180" : ""} transition-all duration-300`}
+                    aria-hidden="true"
+                    className={cn(
+                      "transition-transform duration-200 motion-reduce:transition-none",
+                      isOpeningChildren === href && "rotate-180",
+                    )}
                   />
-                  {label}
-                </span>
+                </button>
               </PopoverTrigger>
 
               <PopoverContent className="flex w-[260px] flex-col gap-2">

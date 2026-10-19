@@ -88,10 +88,10 @@ server action checks the authenticated admin ID and writes with the server-only
 Recheck that Vapi still lists the voices and ElevenLabs provider IDs used by
 your app; voice availability and prices may have changed.
 
-## 4. Text chat and optional learning recaps
+## 4. Voice sessions, typed messages, and optional learning recaps
 
 Apply `20261014030000_add_learning_recap.sql` before saving voice sessions,
-using text chat, or generating recaps. It adds `vapi_call_id` and the other
+sending typed messages, or generating recaps. It adds `vapi_call_id` and the other
 session metadata fields used by the companion workspace. If saving reports a
 missing column, keep the conversation page open, apply this migration, and use
 **Retry saving call** to save the retained transcript.
@@ -109,11 +109,16 @@ voice client's newest-first storage. Other conversations are preserved.
 Saved real sessions and explicitly labeled demo sessions can then be shown
 separately in the companion conversation stack.
 
+Both typed and spoken messages use Vapi voice sessions. Sending a typed message
+starts a call with the microphone muted; the first question is included in the
+call's initial model context and the assistant generates a spoken reply. Later
+typed messages join the active call. Final transcripts are saved to that user's
+private `session-history` row. The workspace no longer calls Vapi's Chat API.
+Old text transcripts remain readable, and an open legacy text session is closed
+before a new voice session starts.
+
 Set the server-only `VAPI_PRIVATE_API_KEY` environment variable in local and
-deployed environments. The companion room's **Open text chat** action uses
-Vapi's Chat API without opening a microphone session. Text conversations are
-saved to that user's private `session-history` row as they go. Vapi's current
-usage-based Chat API may require a payment method and a completed purchase.
+deployed environments if learning recaps are enabled.
 
 The app offers a learning recap only after a user-ended voice call of at least
 60 seconds with at least two student turns. Vapi analyzes its saved call

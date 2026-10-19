@@ -9,9 +9,10 @@ import { getToastStyle } from "@/lib/utils";
 
 type LoginFormProps = {
   testCredentials: { email: string; password: string } | null;
+  returnPath: string;
 };
 
-const LoginForm = ({ testCredentials }: LoginFormProps) => {
+const LoginForm = ({ testCredentials, returnPath }: LoginFormProps) => {
   const { isLoaded: isAuthLoaded } = useAuth();
   const { isLoaded: isSignInLoaded, signIn, setActive } = useSignIn();
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -21,7 +22,7 @@ const LoginForm = ({ testCredentials }: LoginFormProps) => {
 
     if (showToast) {
       toast.error(errorMessage.notAuthorized, getToastStyle("warning"));
-      document.cookie = "Max-Age=0; Path=/";
+      document.cookie = "authorization=; Max-Age=0; Path=/";
     }
   }, []);
 
@@ -42,9 +43,11 @@ const LoginForm = ({ testCredentials }: LoginFormProps) => {
       }
 
       await setActive({ session: result.createdSessionId });
-      window.location.assign("/");
+      window.location.assign(returnPath);
     } catch {
-      toast.error("Could not sign in with the test account. Check its Clerk credentials.");
+      toast.error(
+        "Could not sign in with the test account. Check its Clerk credentials.",
+      );
     } finally {
       setIsSigningIn(false);
     }
@@ -58,7 +61,7 @@ const LoginForm = ({ testCredentials }: LoginFormProps) => {
     <main className="mt-20 flex flex-col items-center justify-center gap-4">
       {testCredentials && (
         <button
-          className="rounded-md bg-primary px-4 py-2 text-sm cursor-pointer hover:bg-primary/85 font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
+          className="bg-primary hover:bg-primary/85 text-primary-foreground cursor-pointer rounded-md px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isSigningIn}
           onClick={signInWithTestAccount}
           type="button"
@@ -66,7 +69,10 @@ const LoginForm = ({ testCredentials }: LoginFormProps) => {
           {isSigningIn ? "Signing in…" : "Sign in as Test Account"}
         </button>
       )}
-      <SignIn />
+      <SignIn
+        forceRedirectUrl={returnPath}
+        signUpForceRedirectUrl={returnPath}
+      />
     </main>
   );
 };

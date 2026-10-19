@@ -58,7 +58,7 @@ export async function saveSessionHistory(
 //#endregion
 
 //#region get session history
-export async function getSessionHistories(limit: number) {
+export async function getRecentlyPracticedCompanions(limit: number) {
   const supabase = createSupabaseClient();
 
   // This RPC returns only public companion fields. Session transcripts stay
@@ -76,7 +76,12 @@ export async function getSessionHistories(limit: number) {
     };
   }
 
-  return data;
+  const seen = new Set<string>();
+  return (data ?? []).filter(({ id }) => {
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
 }
 //#endregion
 
@@ -103,50 +108,6 @@ export async function getUserSessionHistories(
   }
 
   return data.map(({ companion }) => companion);
-}
-//#endregion
-
-//#region get last session
-export async function getLastUserSession(companionId: string, userId: string) {
-  const { userId: authenticatedUserId } = await auth();
-  if (!authenticatedUserId || authenticatedUserId !== userId) {
-    return { error: errorMessage.notAuthorized };
-  }
-  const supabase = createSupabaseClient();
-
-  const { data, error: error } = await supabase
-    .from("session-history")
-    // Legacy history tables may not yet have the optional recap/text columns.
-    // Select available fields so an empty table is still an ordinary result.
-    .select("*")
-    .eq("user_id", userId!)
-    .eq("companion_id", companionId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    console.log(error.message);
-    return {
-      error: errorMessage.fetchFail,
-      errorDescription: error.message,
-    };
-  }
-
-  if (!data) return { data: null };
-  if (data.user_id !== userId) return { error: errorMessage.notAuthorized };
-
-  return {
-    data: {
-      ...data,
-      interaction_mode: data.interaction_mode ?? "voice",
-      learning_recap: data.learning_recap ?? null,
-      ended_by_user: data.ended_by_user ?? false,
-      duration_seconds: data.duration_seconds ?? null,
-      vapi_call_id: data.vapi_call_id ?? null,
-      vapi_chat_id: data.vapi_chat_id ?? null,
-    },
-  };
 }
 //#endregion
 

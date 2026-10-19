@@ -6,8 +6,9 @@
     "node": ">=22.14.0"
   },
   "scripts": {
+    "test:auth": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --test-isolation=none lib/auth-redirect.test.mjs",
     "test:companion": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --test-isolation=none components/custom/companion-workspace/*.test.mjs lib/services/sessions-history.test.mjs lib/services/text-chat.test.mjs lib/conversation-context.test.mjs lib/vapi-muted-start.test.mjs",
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

@@ -8,8 +8,6 @@ if (!key) {
   throw new Error(error.missingEnvVariables);
 }
 
-export const vapi = new Vapi(key);
-
 export const createVapiClient = (options?: { startAudioOff?: boolean }) => {
   const client = new Vapi(key!, undefined, undefined, options);
   if (options?.startAudioOff) installMutedStartup(client);

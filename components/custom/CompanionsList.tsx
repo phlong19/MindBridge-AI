@@ -17,29 +17,37 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/Tooltip";
 
 const CompanionsList = ({
   title,
+  description,
+  emptyMessage = "You haven’t added anything yet.",
   companions = [],
   className,
 }: {
   title: string;
+  description?: string;
+  emptyMessage?: string;
   companions: Companion[];
   className?: string;
 }) => {
   return (
     <article className={cn("companion-list", className)}>
-      <h2 className="text-3xl font-bold">{title}</h2>
-      <br />
+      {title && <h2 className="mb-4 text-3xl font-bold">{title}</h2>}
+      {description && (
+        <p className="text-muted-foreground mb-4 text-sm">{description}</p>
+      )}
       {!!companions.length ? (
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-2/3 text-lg">Lessons</TableHead>
               <TableHead className="text-lg">Subject</TableHead>
-              <TableHead className="text-right text-lg">Duration</TableHead>
+              <TableHead className="text-right text-lg">
+                Lesson length
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {companions.map(({ id, subject, name, duration, topic }) => (
-              <TableRow key={id}>
+            {companions.map(({ id, subject, name, duration, topic }, index) => (
+              <TableRow key={`${id}-${index}`}>
                 <TableCell>
                   <Link href={`/companions/${id}`}>
                     <div className="flex items-center gap-3.5">
@@ -97,9 +105,7 @@ const CompanionsList = ({
           </TableBody>
         </Table>
       ) : (
-        <TypographyH4 className="font-normal">
-          You haven’t added anything yet.
-        </TypographyH4>
+        <TypographyH4 className="font-normal">{emptyMessage}</TypographyH4>
       )}
     </article>
   );

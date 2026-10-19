@@ -401,7 +401,7 @@ export default function CompanionConversation({
             <p className="text-muted-foreground px-1 text-[10px]">
               {callActive
                 ? "Typed messages join this voice session"
-                : "Enter to send · Shift + Enter for a new line"}
+                : "Sending starts a voice session with the microphone muted · Enter to send · Shift + Enter for a new line"}
             </p>
             <div className="flex items-center gap-2">
               <Button

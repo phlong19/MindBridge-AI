@@ -8,12 +8,16 @@ import { cn, getSubjectColor } from "@/lib/utils";
 export default function CompanionAvatar({
   companion,
   className,
+  alt = "",
+  sizes = "72px",
 }: {
   companion: CompanionRow;
   className?: string;
+  alt?: string;
+  sizes?: string;
 }) {
-  const [failed, setFailed] = useState(false);
-  const photo = companion.photoUrl && !failed;
+  const [failedSource, setFailedSource] = useState<string | null>(null);
+  const photo = companion.photoUrl && companion.photoUrl !== failedSource;
   return (
     <div
       className={cn(
@@ -31,12 +35,12 @@ export default function CompanionAvatar({
             ? companion.photoUrl!
             : `/icons/${companion.subject ?? "maths"}.svg`
         }
-        alt=""
+        alt={alt}
         fill
-        sizes="72px"
+        sizes={sizes}
         unoptimized
         className={photo ? "object-cover" : "object-contain p-2.5"}
-        onError={photo ? () => setFailed(true) : undefined}
+        onError={photo ? () => setFailedSource(companion.photoUrl) : undefined}
       />
     </div>
   );

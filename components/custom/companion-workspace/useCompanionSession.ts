@@ -1,14 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type Vapi from "@vapi-ai/web";
 import type { CompanionRow, LearningRecap, SavedMessage } from "@/types";
 import { configureAssistant } from "@/lib/utils";
 import { buildConversationContext } from "@/lib/conversation-context";
 import { saveSessionHistory } from "@/lib/services/sessions-history";
-import {
-  finishCompanionTextSession,
-  sendCompanionTextMessage,
-} from "@/lib/services/text-chat";
+import { finishCompanionTextSession } from "@/lib/services/text-chat";
 import { generateLearningRecap } from "@/lib/services/learning-recap";
 import {
   canOfferRecap,
@@ -24,7 +22,7 @@ import { VoiceSession } from "./voice-session";
 import { useConversationTimeline } from "./useConversationTimeline";
 
 type CallStatus = "idle" | "connecting" | "active" | "ending" | "saving";
-type VoiceClient = typeof import("@/lib/vapi.sdk").vapi;
+type VoiceClient = Vapi;
 
 export function useCompanionSession(
   companion: CompanionRow,
@@ -242,21 +240,12 @@ export function useCompanionSession(
           const content = pendingFirstMessage.current;
           pendingFirstMessage.current = null;
           if (content) {
-            try {
-              const request = {
-                type: "add-message" as const,
-                message: { role: "user" as const, content },
-                triggerResponseEnabled: true,
-              };
-              vapi.send(request);
-              voice.current.addTypedMessage(content);
-              scheduleAutosave();
-              setMessages([...voice.current.messages].reverse());
-              setDraft("");
-            } catch {
-              setResponsePending(false);
-              setError("Could not send your first message. Please try again.");
-            }
+            // The first typed turn is already in the assistant's initial
+            // context. Sending it here can race the assistant's startup.
+            voice.current.addTypedMessage(content);
+            scheduleAutosave();
+            setMessages([...voice.current.messages].reverse());
+            setDraft("");
           }
         };
         const onEnd = () => {
@@ -374,7 +363,6 @@ export function useCompanionSession(
         };
       })
       .catch(() => {
-        // Text chat remains usable if voice configuration is unavailable.
         if (!disposed) setVoiceReady(false);
       });
     return () => {
@@ -405,6 +393,17 @@ export function useCompanionSession(
     const timer = window.setInterval(() => setClockNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, [callStatus]);
+
+  useEffect(() => {
+    if (!responsePending || callStatus !== "active") return;
+    const timer = window.setTimeout(() => {
+      setResponsePending(false);
+      setError(
+        "The assistant has not responded. Try sending again, or end the session and retry.",
+      );
+    }, 45_000);
+    return () => window.clearTimeout(timer);
+  }, [responsePending, callStatus]);
 
   function openSavedSession(saved: WorkspaceSession, resume = false) {
     if (isNavigationLocked()) return false;
@@ -466,72 +465,7 @@ export function useCompanionSession(
         return false;
       }
     }
-    const previousMessages = messages;
-    const previousTimelineId = timelineSessionId;
-    const previousMode = mode;
-    const newSession = textSessionRef.current === null;
-    busyRef.current = true;
-    setBusy(true);
-    if (newSession) {
-      voiceStartedAt.current = Date.now();
-      setTimelineSessionId(null);
-    }
-    setMessages([...(newSession ? [] : messages), { role: "user", content }]);
-    setMode("text");
-    setDraft("");
-    try {
-      const result = await sendCompanionTextMessage(
-        companion.id,
-        content,
-        textSessionRef.current,
-      );
-      if ("error" in result)
-        throw new Error(result.errorDescription ?? result.error);
-      if (!mounted.current) return true;
-      textSessionRef.current = result.data.sessionId;
-      setTextSessionId(result.data.sessionId);
-      setSelectedSessionId(result.data.sessionId);
-      setTimelineSessionId(result.data.sessionId);
-      recordSessions([
-        {
-          id: result.data.sessionId,
-          created_at:
-            sessionsRef.current.find(
-              (session) => session.id === result.data.sessionId,
-            )?.created_at ?? new Date().toISOString(),
-          messages: JSON.stringify(result.data.messages),
-          interaction_mode: "text",
-          ended_by_user: false,
-          canResume: true,
-          learning_recap: null,
-          is_demo: false,
-        },
-      ]);
-      setViewedSession(null);
-      setMessages(result.data.messages);
-      setMode("text");
-      setCompleted(false);
-      setRecap(null);
-      setRecapSessionId(null);
-      setDraft("");
-      return true;
-    } catch (failure) {
-      if (mounted.current) {
-        setMessages(previousMessages);
-        setTimelineSessionId(previousTimelineId);
-        setMode(previousMode);
-        setDraft(content);
-        setError(
-          failure instanceof Error
-            ? failure.message
-            : "Could not send your message. Please try again.",
-        );
-      }
-      return false;
-    } finally {
-      busyRef.current = false;
-      if (mounted.current) setBusy(false);
-    }
+    return startVoice({ muted: true, firstMessage: content });
   }
 
   async function endText() {
@@ -571,10 +505,13 @@ export function useCompanionSession(
   async function startVoice(
     options: { muted?: boolean; firstMessage?: string } = {},
   ) {
+    if (!sdk.current || !companion.slug) {
+      if (mounted.current)
+        setError("Voice chat is not ready yet. Please try again.");
+      return false;
+    }
     if (
-      !sdk.current ||
       historyError ||
-      !companion.slug ||
       callStatusRef.current !== "idle" ||
       busyRef.current ||
       generatingRecapRef.current ||
@@ -605,16 +542,22 @@ export function useCompanionSession(
             parseSessionMessages(session.messages, session.interaction_mode),
           ),
       );
-      if (assistant.model && "messages" in assistant.model && context.length)
+      if (assistant.model && "messages" in assistant.model)
         assistant.model.messages = [
           ...(assistant.model.messages ?? []),
           ...context,
+          ...(options.firstMessage
+            ? [{ role: "user" as const, content: options.firstMessage }]
+            : []),
         ];
       // Put runtime settings on the transient assistant itself so the call
       // configuration includes them alongside the model and voice settings.
       assistant.silenceTimeoutSeconds = Math.min(durationSeconds, 3600);
-      if (options.firstMessage) assistant.firstMessageMode = "assistant-waits-for-user";
-      else if (context.length) assistant.firstMessageMode = "assistant-speaks-first-with-model-generated-message";
+      if (options.firstMessage || context.length) {
+        delete assistant.firstMessage;
+        assistant.firstMessageMode =
+          "assistant-speaks-first-with-model-generated-message";
+      }
       // @ts-expect-error Vapi accepts an array despite its generated scalar type.
       assistant.clientMessages = ["transcript", "speech-update", "status-update"];
       const call = await client.start(assistant, {
@@ -749,7 +692,6 @@ export function useCompanionSession(
     send,
     endText,
     startVoice,
-    startConversation: () => startVoice({ muted: true }),
     endVoice,
     toggleMute,
     retrySave: saveVoice,

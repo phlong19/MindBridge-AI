@@ -12,6 +12,7 @@ import {
 import type { CompanionRow } from "@/types";
 import { cn } from "@/lib/utils";
 import LearningRecapPanel from "./LearningRecapPanel";
+import CompanionAvatar from "./CompanionAvatar";
 import type { CompanionSessionState } from "./useCompanionSession";
 
 function Detail({
@@ -113,6 +114,17 @@ export default function CompanionDetails({
       >
         {tab === "about" ? (
           <>
+            <div className="flex flex-col items-center gap-3 py-3">
+              <CompanionAvatar
+                companion={companion}
+                className="size-40 rounded-3xl"
+                alt={`Avatar for ${companion.name}`}
+                sizes="160px"
+              />
+              <p className="w-full text-center text-lg font-semibold break-words">
+                {companion.name}
+              </p>
+            </div>
             <section className="bg-muted/60 rounded-2xl p-5">
               <h3 className="mb-2 font-bold">Overview</h3>
               <p className="text-muted-foreground mb-6 text-sm leading-relaxed">

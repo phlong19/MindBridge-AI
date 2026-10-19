@@ -7,15 +7,16 @@ import { getCompanionConversation } from "@/lib/services/sessions-history";
 import { getVoicesList } from "@/lib/services/voices";
 import { error as errorMessage } from "@/constants/message";
 import { navLinks } from "@/constants";
+import { getSignInPath } from "@/lib/auth-redirect";
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
 const Page = async ({ params }: Props) => {
-  const user = await currentUser();
-  if (!user) redirect(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!);
   const { id } = await params;
+  const user = await currentUser();
+  if (!user) redirect(getSignInPath(`/companions/${encodeURIComponent(id)}`));
   const { companion, error } = await getCompanion(id, user.id);
   if (!companion)
     return (
