@@ -64,6 +64,7 @@ export async function getCompanionList({
   subject,
   topic,
   authorized = true,
+  bookmarkedOnly = false,
 }: GetAllCompanions) {
   const supabase = createSupabaseClient();
 
@@ -78,7 +79,12 @@ export async function getCompanionList({
   const authResult = await auth();
   userId = authResult?.userId ?? null;
 
-  if (userId) {
+  if (bookmarkedOnly) {
+    if (!userId) return { error: errorMessage.notAuthenticated };
+    query = query
+      .select("*, bookmarks!inner(userId)", { count: "exact" })
+      .eq("bookmarks.userId", userId);
+  } else if (userId) {
     query = query.select("*, bookmarks(userId)", { count: "exact" });
 
     if (authorized) {

@@ -17,6 +17,9 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 
 async function page({ searchParams }: SearchParams) {
+  const user = await currentUser();
+  if (!user) redirect(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!);
+
   const params = await searchParams;
   const { limit, page, topic, subject } = params;
 
@@ -45,12 +48,8 @@ async function page({ searchParams }: SearchParams) {
     page: currentPage,
     subject,
     topic,
-    authorized: false,
+    bookmarkedOnly: true,
   });
-
-  const user = await currentUser();
-
-  if (!user) redirect(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL!);
 
   const sessionsHistory = await getUserSessionHistories(user.id);
 
@@ -111,7 +110,7 @@ async function page({ searchParams }: SearchParams) {
               <Image src="/icons/cap.svg" alt="" width={22} height={22} />
 
               <TypographyP className="text-lg font-bold">
-                {companions?.length}
+                {count ?? 0}
               </TypographyP>
             </div>
             <div>
@@ -157,10 +156,18 @@ async function page({ searchParams }: SearchParams) {
             </AccordionTrigger>
 
             <AccordionContent>
-              {bookmarked?.length ? (
-                <CompanionsList companions={bookmarked} title="" />
+              {getBookmarkError ? (
+                <p className="text-muted-foreground text-sm">
+                  <LocalizedText>
+                    Could not load your bookmarked companions. Please try again.
+                  </LocalizedText>
+                </p>
               ) : (
-                <NoCompanions />
+                <CompanionsList
+                  companions={bookmarked ?? []}
+                  title=""
+                  emptyMessage="No bookmarked companions yet. Use the bookmark icon to save a companion."
+                />
               )}
             </AccordionContent>
           </AccordionItem>

@@ -330,5 +330,7 @@
   "User": "Người dùng",
   "Companion": "Bạn đồng hành",
   "Could not load older messages. Please retry.": "Không thể tải các tin nhắn cũ hơn. Vui lòng thử lại.",
-  "You": "Bạn"
+  "You": "Bạn",
+  "No bookmarked companions yet. Use the bookmark icon to save a companion.": "Bạn chưa đánh dấu bạn đồng hành nào. Hãy nhấn biểu tượng dấu trang để lưu bạn đồng hành.",
+  "Could not load your bookmarked companions. Please try again.": "Không thể tải các bạn đồng hành đã đánh dấu. Vui lòng thử lại."
 }
